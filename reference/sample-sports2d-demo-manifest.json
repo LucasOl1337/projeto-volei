@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "isa.video-clip-manifest.v1",
+  "generatedAt": "2026-07-01T12:00:00.000Z",
+  "candidate": {
+    "name": "Sports2D",
+    "license": "BSD-3-Clause",
+    "priority": "Demo tecnico"
+  },
+  "captureProtocol": {
+    "maxDurationSeconds": 12,
+    "camera": "Demo tecnico do repositorio Sports2D; nao representa clip real da Isa.",
+    "reviewRule": "Usar apenas para validar o pipeline, nao para relatorio de treino."
+  },
+  "preflight": [
+    {
+      "id": "source-video-paths",
+      "label": "Caminhos de video bruto",
+      "current": 1,
+      "target": 1,
+      "passed": true
+    },
+    {
+      "id": "sports2d-angle-paths",
+      "label": "Caminhos de angulos Sports2D",
+      "current": 1,
+      "target": 1,
+      "passed": true
+    },
+    {
+      "id": "normalized-evidence-paths",
+      "label": "Caminhos de evidencia normalizada",
+      "current": 1,
+      "target": 1,
+      "passed": true
+    },
+    {
+      "id": "metric-targets",
+      "label": "Metricas tecnicas planejadas",
+      "current": 1,
+      "target": 1,
+      "passed": true
+    },
+    {
+      "id": "manual-review-required",
+      "label": "Revisao manual obrigatoria",
+      "current": 1,
+      "target": 1,
+      "passed": true
+    }
+  ],
+  "status": "Demo pronto para revisar pipeline",
+  "clips": [
+    {
+      "id": "sample-sports2d-saque",
+      "athlete": "Demo Sports2D",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "marker": "Ponto de contato",
+      "status": "IA rodada",
+      "sourceVideo": "reference/sports2d-demo.mp4",
+      "sports2dAngles": "reference/sample-sports2d-saque.mot",
+      "normalizedEvidence": "reference/sample-sports2d-normalized-video-evidence.json",
+      "metricTargets": [
+        {
+          "fundamental": "Saque",
+          "phase": "Contato",
+          "signal": "Contato alto e braco organizado",
+          "metric": "Punho acima do ombro + cotovelo estendido",
+          "joints": ["punho", "ombro", "cotovelo"],
+          "sources": ["MediaPipe Pose", "Sports2D"],
+          "manualCheck": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+          "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual.",
+          "recommendedSource": {
+            "name": "Sports2D",
+            "integrationMode": "external-cli",
+            "license": "BSD-3-Clause",
+            "status": "pilot-with-manual-review",
+            "cloneDecision": "do-not-clone-yet",
+            "nextAction": "Comparar contra checagem manual antes do relatorio."
+          }
+        }
+      ],
+      "manualReview": {
+        "required": true,
+        "expectedCalibrationOf": "sports2d-saque-braco",
+        "note": "Demo tecnico: revisar visualmente antes de usar como exemplo de fluxo."
+      }
+    }
+  ],
+  "commands": [
+    "npm run video:sports2d:worklist:demo",
+    "npm run video:sports2d:run:demo",
+    "npm run video:clips:process:demo"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "isa.video-movement-metric-map.v1",
+  "updatedAt": "2026-07-01",
+  "purpose": "Mapear fundamento, fase, articulacoes e fonte de IA antes de automatizar correcao tecnica.",
+  "metrics": [
+    {
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "signal": "Contato alto e braco organizado",
+      "metric": "Punho acima do ombro + cotovelo estendido",
+      "joints": ["punho", "ombro", "cotovelo"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+      "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual."
+    },
+    {
+      "fundamental": "Saque",
+      "phase": "Finalizacao",
+      "signal": "Braco acompanha a direcao do saque",
+      "metric": "Linha ombro-cotovelo-punho na finalizacao",
+      "joints": ["ombro", "cotovelo", "punho"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar se o braco terminou alto e na direcao do alvo, sem perder equilibrio.",
+      "nextAction": "Comparar finalizacao com o mesmo alvo em 3 saques controlados."
+    },
+    {
+      "fundamental": "Recepcao",
+      "phase": "Contato",
+      "signal": "Plataforma firme com base baixa",
+      "metric": "Flexao de joelho + alinhamento dos bracos",
+      "joints": ["quadril", "joelho", "tornozelo", "ombro", "punho"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar se a plataforma aponta para o alvo e se o tronco nao subiu cedo.",
+      "nextAction": "Filmar 3 recepcoes com camera parada e uma trajetoria por clip."
+    },
+    {
+      "fundamental": "Ataque",
+      "phase": "Contato",
+      "signal": "Maior alcance do braco de ataque",
+      "metric": "Punho alto + extensao de cotovelo + tronco controlado",
+      "joints": ["punho", "cotovelo", "ombro", "quadril", "joelho"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar o frame de contato antes de avaliar altura ou correcao.",
+      "nextAction": "Separar contato e aterrissagem em clips curtos diferentes."
+    },
+    {
+      "fundamental": "Bloqueio",
+      "phase": "Alcance",
+      "signal": "Maos acima da rede simulada",
+      "metric": "Maos altas + extensao de cotovelo",
+      "joints": ["punho", "cotovelo", "ombro", "tronco"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar se as maos chegam juntas e acima da linha-alvo do bloqueio.",
+      "nextAction": "Filmar bloqueios curtos separando alcance e queda para nao misturar criterios."
+    },
+    {
+      "fundamental": "Bloqueio",
+      "phase": "Queda",
+      "signal": "Aterrissagem equilibrada depois do alcance",
+      "metric": "Flexao de joelho + eixo do tronco",
+      "joints": ["quadril", "joelho", "tornozelo", "ombro", "tronco"],
+      "sources": ["Sports2D", "Vert Tracker"],
+      "manualCheck": "Checar se a atleta cai pronta para a proxima defesa, sem joelho colapsar.",
+      "nextAction": "Usar primeiro como prevencao e qualidade de queda, nao como nota automatica."
+    },
+    {
+      "fundamental": "Defesa",
+      "phase": "Preparacao",
+      "signal": "Base mais baixa antes da leitura",
+      "metric": "Altura relativa do quadril + flexao de joelho",
+      "joints": ["quadril", "joelho", "tornozelo"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar se a base baixa aparece antes do contato, nao so depois.",
+      "nextAction": "Filmar deslocamentos curtos por zona e comparar estabilidade."
+    },
+    {
+      "fundamental": "Levantamento",
+      "phase": "Contato",
+      "signal": "Maos altas e corpo de frente para o alvo",
+      "metric": "Maos acima da testa + alinhamento de tronco",
+      "joints": ["punho", "cotovelo", "ombro", "quadril"],
+      "sources": ["MediaPipe Pose", "Sports2D"],
+      "manualCheck": "Confirmar se a decisao do alvo foi chamada antes do toque.",
+      "nextAction": "Conectar a metrica com leitura de jogo, nao apenas gesto de braco."
+    }
+  ]
+}

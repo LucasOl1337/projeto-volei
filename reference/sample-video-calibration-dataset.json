@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "isa.video-calibration-dataset.v1",
+  "generatedAt": "2026-07-01T12:00:00.000Z",
+  "summary": {
+    "evidenceCount": 2,
+    "aiEvidenceCount": 1,
+    "manualEvidenceCount": 1,
+    "pairedChecks": 1,
+    "validationClipCount": 1
+  },
+  "readiness": [
+    {
+      "fundamental": "Saque",
+      "aiCount": 1,
+      "checkedCount": 1,
+      "alignedCount": 1,
+      "rate": 100,
+      "status": "Em calibracao"
+    }
+  ],
+  "phaseReadiness": [
+    {
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "aiCount": 1,
+      "checkedCount": 1,
+      "alignedCount": 1,
+      "rate": 100,
+      "status": "Em calibracao"
+    }
+  ],
+  "sourceReadiness": [
+    {
+      "source": "Sports2D",
+      "aiCount": 1,
+      "checkedCount": 1,
+      "alignedCount": 1,
+      "rate": 100,
+      "averageConfidence": 0.82,
+      "status": "Em calibracao"
+    }
+  ],
+  "validationClips": [
+    {
+      "id": "clip-saque-contato-001",
+      "athlete": "Isa",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "marker": "Contato alto no saque",
+      "status": "Revisado com treinadora",
+      "createdAt": "2026-07-01T12:00:00.000Z"
+    }
+  ],
+  "pairs": [
+    {
+      "id": "sports2d-saque-braco",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "marker": "Ponto de contato",
+      "alignment": "Alinhada",
+      "paired": true,
+      "ai": {
+        "source": "Sports2D",
+        "athlete": "Isa",
+        "timeRange": "00:04.20 - 00:04.80",
+        "metric": "Braco alto e cotovelo estendido Sports2D",
+        "value": "sim, braco 81 graus; cotovelo 154 graus",
+        "confidence": 0.82,
+        "status": "Revisar",
+        "recommendedSource": {
+          "name": "Sports2D",
+          "integrationMode": "external-cli",
+          "license": "BSD-3-Clause",
+          "status": "pilot-with-manual-review",
+          "cloneDecision": "do-not-clone-yet",
+          "nextAction": "Comparar contra checagem manual antes do relatorio."
+        }
+      },
+      "manual": {
+        "id": "manual-sports2d-saque-braco",
+        "source": "Manual",
+        "athlete": "Isa",
+        "timeRange": "00:04.20 - 00:04.80",
+        "metric": "Contato alto validado pela treinadora",
+        "value": "sim",
+        "calibrationOf": "sports2d-saque-braco",
+        "reviewedAt": "2026-07-01T12:05:00.000Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "isa.video-evidence.v1",
+  "generatedAt": "2026-07-01T19:38:04.832Z",
+  "source": "MediaPipe",
+  "importedFrom": "C:\\Users\\user\\Desktop\\ProjetoIsa\\reference\\sample-pose-result.json",
+  "clip": {
+    "id": "clip-saque-demo-001",
+    "title": "Saque flutuante - serie curta",
+    "athlete": "Atleta exemplo",
+    "fundamental": "Saque",
+    "durationSeconds": 18.4
+  },
+  "evidence": [
+    {
+      "id": "saque-contato-alto",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "athlete": "Atleta exemplo",
+      "timeRange": "00:04.20 - 00:04.80",
+      "marker": "Ponto de contato",
+      "metric": "Punho acima do ombro + cotovelo estendido",
+      "value": "sim, margem estimada de 18 cm",
+      "confidence": 0.82,
+      "status": "Revisar",
+      "reportUse": "Confirmar se o contato aconteceu alto o suficiente antes de registrar correcao.",
+      "nextAction": "Repetir 3 series focando lancamento mais estavel antes da batida.",
+      "metricTargets": [
+        {
+          "fundamental": "Saque",
+          "phase": "Contato",
+          "signal": "Contato alto e braco organizado",
+          "metric": "Punho acima do ombro + cotovelo estendido",
+          "joints": [
+            "punho",
+            "ombro",
+            "cotovelo"
+          ],
+          "sources": [
+            "MediaPipe Pose",
+            "Sports2D"
+          ],
+          "manualCheck": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+          "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual.",
+          "recommendedSource": {
+            "name": "MediaPipe Pose",
+            "integrationMode": "browser-sdk",
+            "license": "Apache-2.0",
+            "status": "pilot-with-manual-review",
+            "cloneDecision": "do-not-clone",
+            "nextAction": "Manter a sugestao como Revisar ate a checagem manual."
+          }
+        }
+      ],
+      "raw": {
+        "rightWristY": 0.22,
+        "rightShoulderY": 0.34,
+        "rightElbowAngle": 148
+      }
+    },
+    {
+      "id": "saque-finalizacao",
+      "fundamental": "Saque",
+      "phase": "Finalizacao",
+      "athlete": "Atleta exemplo",
+      "timeRange": "00:04.80 - 00:05.40",
+      "marker": "Finalizacao",
+      "metric": "Linha ombro-cotovelo-punho",
+      "value": "cotovelo manteve extensao acima da linha do ombro",
+      "confidence": 0.74,
+      "status": "Revisar",
+      "reportUse": "Usar como sugestao para comparar com a observacao manual do gesto.",
+      "nextAction": "Manter o braco alto e repetir sem aumentar forca maxima.",
+      "metricTargets": [
+        {
+          "fundamental": "Saque",
+          "phase": "Finalizacao",
+          "signal": "Braco acompanha a direcao do saque",
+          "metric": "Linha ombro-cotovelo-punho na finalizacao",
+          "joints": [
+            "ombro",
+            "cotovelo",
+            "punho"
+          ],
+          "sources": [
+            "MediaPipe Pose",
+            "Sports2D"
+          ],
+          "manualCheck": "Confirmar se o braco terminou alto e na direcao do alvo, sem perder equilibrio.",
+          "nextAction": "Comparar finalizacao com o mesmo alvo em 3 saques controlados.",
+          "recommendedSource": {
+            "name": "MediaPipe Pose",
+            "integrationMode": "browser-sdk",
+            "license": "Apache-2.0",
+            "status": "pilot-with-manual-review",
+            "cloneDecision": "do-not-clone",
+            "nextAction": "Manter a sugestao como Revisar ate a checagem manual."
+          }
+        }
+      ]
+    }
+  ]
+}

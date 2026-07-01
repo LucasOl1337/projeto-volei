@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Licao 0001 - Primeiro ciclo do app de volei</title>
+    <link rel="stylesheet" href="../assets/lesson.css" />
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="label">Licao 0001</p>
+            <h1>O primeiro ciclo: dominio, dados, tela</h1>
+            <p>
+              Nesta licao voce aprende a forma mais rapida de evoluir o Projeto Isa sem se perder: pegar uma ideia de
+              volei, transformar em dados simples e mostrar isso em uma tela real.
+            </p>
+          </div>
+          <img src="../public/assets/learning-volleyball-system.png" alt="Quadra de volei com paineis de treino e analise" />
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <p class="label">Ideia</p>
+          <h2>Comece pelo que acontece na quadra</h2>
+          <p>
+            Em vez de perguntar "qual tela eu faco?", pergunte "qual decisao de treino eu quero melhorar?". Exemplo:
+            escolher o proximo foco depois de observar recepcao e bloqueio.
+          </p>
+        </article>
+        <article class="card">
+          <p class="label">Dados</p>
+          <h2>Nomeie as coisas</h2>
+          <p>
+            No codigo, uma sessao de treino vira um objeto com <code>title</code>, <code>style</code>,
+            <code>focus</code>, <code>quality</code> e <code>notes</code>. Isso e modelagem simples.
+          </p>
+        </article>
+        <article class="card">
+          <p class="label">Tela</p>
+          <h2>Mostre um resultado visivel</h2>
+          <p>
+            O dashboard pega esses dados e mostra filtros, tabelas e cards. Assim voce ve o app funcionando enquanto
+            aprende componentes, props e estado.
+          </p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top: 24px">
+        <h2>O ciclo que vamos repetir</h2>
+        <div class="step">
+          <span class="badge">1</span>
+          <div>
+            <h3>Escolher uma pergunta de volei</h3>
+            <p>Exemplo: "Qual fundamento mais precisa aparecer no proximo treino?"</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="badge">2</span>
+          <div>
+            <h3>Criar ou ajustar os dados</h3>
+            <p>Adicionar apenas os campos necessarios para responder a pergunta de hoje.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="badge">3</span>
+          <div>
+            <h3>Construir a menor tela util</h3>
+            <p>Uma tabela, card, filtro ou formulario. Pequeno o bastante para testar no mesmo dia.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="badge">4</span>
+          <div>
+            <h3>Registrar a licao</h3>
+            <p>Guardar o que aprendemos para que voce e outros agentes continuem do ponto certo.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card quiz">
+        <h2>Recuperacao rapida</h2>
+        <p>Tente responder antes de abrir a resposta.</p>
+        <details>
+          <summary>Se uma atleta clica no filtro "Tecnico", isso e dominio, dado ou estado?</summary>
+          <p class="answer">
+            E estado: a escolha muda com a interacao e faz a tela renderizar uma lista filtrada. O dominio e o conceito
+            "estilo de treino"; os dados sao os treinos cadastrados.
+          </p>
+        </details>
+      </section>
+
+      <section class="card" style="margin-top: 24px">
+        <h2>Leitura primaria</h2>
+        <p>
+          Para a parte de desenvolvimento, leia a explicacao oficial do React sobre
+          <a href="https://react.dev/learn/state-a-components-memory">estado como memoria do componente</a>.
+          Para manter o app fiel ao volei, use as
+          <a href="https://www.fivb.com/volleyball/the-game/official-volleyball-rules/">regras oficiais da FIVB</a>
+          quando uma regra precisar virar comportamento no sistema.
+        </p>
+        <p>
+          Se algo ficar confuso, pergunte ao agente. A ideia desta sessao e aprender fazendo, nao decorar tudo de uma vez.
+        </p>
+        <p>
+          Referencia relacionada:
+          <a href="../reference/0001-glossario-app-volei.html">glossario do Projeto Isa</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

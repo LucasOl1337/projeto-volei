@@ -1,0 +1,13 @@
+name sample-sports2d-saque
+datacolumns 4
+datarows 7
+range 0.00 6.00
+endheader
+time	Right_arm	Right_elbow	Right_knee
+0.00	18	108	170
+1.00	35	124	166
+2.00	48	138	162
+3.00	63	145	158
+4.20	72	150	157
+4.80	81	154	156
+6.00	40	126	164

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "isa.video-evidence.v1",
+  "generatedAt": "2026-07-01T19:38:05.176Z",
+  "source": "Sports2D",
+  "importedFrom": "C:\\Users\\user\\Desktop\\ProjetoIsa\\reference\\sample-sports2d-saque.mot",
+  "clip": {
+    "id": "sample-sports2d-saque",
+    "title": "sample-sports2d-saque.mot",
+    "athlete": "Atleta exemplo",
+    "fundamental": "Saque",
+    "durationSeconds": 6
+  },
+  "evidence": [
+    {
+      "id": "sports2d-saque-braco",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "athlete": "Atleta exemplo",
+      "timeRange": "00:04.50 - 00:05.10",
+      "marker": "Ponto de contato",
+      "metric": "Punho acima do ombro + cotovelo estendido",
+      "value": "sim, braco 81 graus; cotovelo 154 graus",
+      "confidence": 0.8,
+      "status": "Revisar",
+      "reportUse": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+      "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual.",
+      "metricTargets": [
+        {
+          "fundamental": "Saque",
+          "phase": "Contato",
+          "signal": "Contato alto e braco organizado",
+          "metric": "Punho acima do ombro + cotovelo estendido",
+          "joints": [
+            "punho",
+            "ombro",
+            "cotovelo"
+          ],
+          "sources": [
+            "MediaPipe Pose",
+            "Sports2D"
+          ],
+          "manualCheck": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+          "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual.",
+          "recommendedSource": {
+            "name": "Sports2D",
+            "integrationMode": "external-cli",
+            "license": "BSD-3-Clause",
+            "status": "pilot-with-manual-review",
+            "cloneDecision": "do-not-clone-yet",
+            "nextAction": "Comparar contra checagem manual antes do relatorio."
+          }
+        }
+      ],
+      "raw": {
+        "time": "4.80",
+        "Right_arm": "81",
+        "Right_elbow": "154",
+        "Right_knee": "156"
+      }
+    }
+  ]
+}

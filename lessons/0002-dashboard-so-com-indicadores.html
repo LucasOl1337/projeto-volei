@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Licao 0002 - Dashboard so com indicadores</title>
+    <link rel="stylesheet" href="../assets/lesson.css" />
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="label">Licao 0002</p>
+            <h1>Dashboard nao e gaveta</h1>
+            <p>
+              Nesta licao voce aprende uma decisao importante de produto: o Dashboard deve mostrar poucos
+              indicadores principais. Ele nao deve virar uma tela com tudo que o app sabe fazer.
+            </p>
+          </div>
+          <img src="../public/assets/learning-volleyball-system.png" alt="Quadra de volei com paineis de analise" />
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <p class="label">Produto</p>
+          <h2>Uma pergunta por tela</h2>
+          <p>
+            O Dashboard responde: <strong>como estou agora?</strong> Por isso ele ficou com
+            <code>Fisico</code>, <code>Tecnico</code> e <code>Fundamento</code>.
+          </p>
+        </article>
+        <article class="card">
+          <p class="label">Codigo</p>
+          <h2>Dados antes de layout</h2>
+          <p>
+            Primeiro criamos uma lista de indicadores. Depois renderizamos os cards com
+            <code>map</code>. Isso evita copiar tres blocos quase iguais.
+          </p>
+        </article>
+        <article class="card">
+          <p class="label">Volei</p>
+          <h2>Alerta antes da causa</h2>
+          <p>
+            Se <code>Fundamento</code> esta baixo, o Dashboard mostra o alerta. A causa fica em
+            Exercicios, Indicadores ou Relatorios.
+          </p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top: 24px">
+        <h2>O raciocinio da mudanca</h2>
+        <div class="step">
+          <span class="badge">1</span>
+          <div>
+            <h3>Remover ruido</h3>
+            <p>Treinos recentes, relatorios e acoes sairam do Dashboard porque exigem leitura detalhada.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="badge">2</span>
+          <div>
+            <h3>Escolher tres sinais</h3>
+            <p>Fisico, Tecnico e Fundamento viraram os sinais principais para abrir o app e entender o estado geral.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="badge">3</span>
+          <div>
+            <h3>Mandar detalhes para telas proprias</h3>
+            <p>Biblioteca de exercicios, indicadores e relatorios explicam o que fazer depois que um numero chama atencao.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card quiz">
+        <h2>Exercicio rapido</h2>
+        <p>Responda antes de abrir a resposta.</p>
+        <details>
+          <summary>Se o indicador Fundamento esta baixo, o que o Dashboard deve fazer?</summary>
+          <p class="answer">
+            Mostrar o alerta principal. A investigacao deve acontecer em outra tela, como Exercicios, Indicadores ou Relatorios.
+          </p>
+        </details>
+      </section>
+
+      <section class="card" style="margin-top: 24px">
+        <h2>Para ler depois</h2>
+        <p>
+          Para entender o padrao de renderizar uma lista de cards a partir de dados, leia a documentacao oficial do React sobre
+          <a href="https://react.dev/learn/rendering-lists">rendering lists</a>.
+          Para conectar isso ao nosso projeto, revise tambem a
+          <a href="../reference/0002-dashboard-indicadores.html">referencia rapida de Dashboard com indicadores</a>.
+        </p>
+        <p>
+          Pergunte ao agente se quiser transformar esse mesmo raciocinio em codigo passo a passo.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "isa.video-ai-project-candidates.v1",
+  "updatedAt": "2026-07-01",
+  "candidates": [
+    {
+      "name": "Sports2D",
+      "url": "https://github.com/davidpagnon/Sports2D",
+      "license": "BSD-3-Clause",
+      "domainFit": "gesture-angles",
+      "priority": "Pilotar agora",
+      "mvpUse": "Converter .mot/.csv em evidencias de saque, ataque, bloqueio e defesa.",
+      "nextTest": "Comparar angulos de punho, cotovelo e joelho contra checagem manual por fase.",
+      "score": {
+        "license": 3,
+        "volleyballFit": 3,
+        "integration": 3,
+        "mvpValue": 3
+      }
+    },
+    {
+      "name": "MediaPipe Pose",
+      "url": "https://developers.google.com/mediapipe/solutions/vision/pose_landmarker",
+      "license": "Apache-2.0",
+      "domainFit": "browser-pose",
+      "priority": "Ja integrado",
+      "mvpUse": "Gerar sugestoes revisaveis no navegador para clips curtos.",
+      "nextTest": "Validar 3 clips reais por fundamento e medir divergencias por fase.",
+      "score": {
+        "license": 3,
+        "volleyballFit": 2,
+        "integration": 3,
+        "mvpValue": 3
+      }
+    },
+    {
+      "name": "volleystat",
+      "url": "https://github.com/SettNozz/volleystat",
+      "license": "No license declared",
+      "domainFit": "volleyball-ball-court-player",
+      "priority": "Estudar depois",
+      "mvpUse": "Referencia para bola, quadra, pose e tracking em jogo coletivo.",
+      "nextTest": "Extrair ideias de arquitetura sem copiar codigo enquanto o MVP foca gesto individual.",
+      "score": {
+        "license": 1,
+        "volleyballFit": 3,
+        "integration": 1,
+        "mvpValue": 2
+      }
+    },
+    {
+      "name": "OpenVolley ovml",
+      "url": "https://github.com/openvolley/ovml",
+      "license": "MIT",
+      "domainFit": "volleyball-ml-ball-game",
+      "priority": "Referencia permissiva",
+      "mvpUse": "Referencia para fase futura de bola, quadra e jogo coletivo, sem substituir a analise manual de gesto.",
+      "nextTest": "Estudar formato de dados e modelos esperados quando houver pergunta clara de bola/quadra.",
+      "score": {
+        "license": 3,
+        "volleyballFit": 3,
+        "integration": 1,
+        "mvpValue": 2
+      }
+    },
+    {
+      "name": "Volleyball Analytics",
+      "url": "https://github.com/masouduut94/volleyball_analytics",
+      "license": "GPL-2.0",
+      "domainFit": "volleyball-game-events",
+      "priority": "Referencia GPL",
+      "mvpUse": "Referencia para jogo completo, bola, acoes e estado de rally.",
+      "nextTest": "Usar apenas como estudo de fluxo, sem copiar codigo para o produto.",
+      "score": {
+        "license": 1,
+        "volleyballFit": 3,
+        "integration": 1,
+        "mvpValue": 2
+      }
+    },
+    {
+      "name": "Vert Tracker",
+      "url": "https://github.com/fatokik/vert-tracker",
+      "license": "No license declared",
+      "domainFit": "volleyball-jump-state-machine",
+      "priority": "Referencia salto",
+      "mvpUse": "Referencia conceitual para salto de ataque, bloqueio e aterrissagem usando MediaPipe e estados do movimento.",
+      "nextTest": "Aproveitar ideias de calibracao e maquina de estados sem copiar codigo.",
+      "score": {
+        "license": 1,
+        "volleyballFit": 3,
+        "integration": 1,
+        "mvpValue": 2
+      }
+    },
+    {
+      "name": "Pose2Sim",
+      "url": "https://github.com/perfanalytics/pose2sim",
+      "license": "BSD-3-Clause",
+      "domainFit": "3d-kinematics",
+      "priority": "Pesquisa 3D",
+      "mvpUse": "Referencia futura para cinematica 3D e OpenSim.",
+      "nextTest": "Manter fora do MVP ate existir necessidade de multiplas cameras.",
+      "score": {
+        "license": 3,
+        "volleyballFit": 2,
+        "integration": 1,
+        "mvpValue": 1
+      }
+    },
+    {
+      "name": "my-computer-vision-jumpshot",
+      "url": "https://github.com/Ez-C99/my-computer-vision-jumpshot",
+      "license": "Apache-2.0",
+      "domainFit": "gesture-state-machine",
+      "priority": "Adaptar conceito",
+      "mvpUse": "Referencia para separar preparacao, contato e finalizacao do gesto.",
+      "nextTest": "Traduzir release frame do basquete para contato do saque ou ataque.",
+      "score": {
+        "license": 3,
+        "volleyballFit": 1,
+        "integration": 2,
+        "mvpValue": 2
+      }
+    }
+  ]
+}

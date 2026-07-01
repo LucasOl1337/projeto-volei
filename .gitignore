@@ -1,0 +1,8 @@
+.venv-video-ai/
+exports/
+videos/
+node_modules/
+dist/
+.env
+.env.*
+*.log

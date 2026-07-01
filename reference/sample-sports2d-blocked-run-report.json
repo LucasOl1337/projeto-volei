@@ -1,0 +1,62 @@
+{
+  "status": "blocked-by-app-control",
+  "schemaVersion": "isa.sports2d-run-report.v1",
+  "worklistVersion": "isa.sports2d-worklist.v1",
+  "execute": false,
+  "force": true,
+  "baseDir": ".",
+  "sports2d": {
+    "available": false,
+    "status": null,
+    "error": "spawnSync .venv-video-ai/Scripts/sports2d.exe UNKNOWN",
+    "stderr": "ImportError: DLL load failed while importing _rtoml: Uma politica de Controle de Aplicativo bloqueou este arquivo.",
+    "path": ".venv-video-ai/Scripts/sports2d.exe",
+    "blockedByAppControl": true,
+    "hint": "A politica de Controle de Aplicativo bloqueou o Sports2D local. Use WSL/Conda liberado ou ajuste a politica antes de executar clips reais."
+  },
+  "clips": 1,
+  "missingVideos": 0,
+  "readyToRun": 0,
+  "hasAngles": 0,
+  "ran": 0,
+  "ranNeedsAngles": 0,
+  "failed": 0,
+  "blockedByAppControl": 1,
+  "items": [
+    {
+      "id": "sample-sports2d-saque",
+      "athlete": "Demo Sports2D",
+      "fundamental": "Saque",
+      "phase": "Contato",
+      "metricTargets": [
+        {
+          "fundamental": "Saque",
+          "phase": "Contato",
+          "signal": "Contato alto e braco organizado",
+          "metric": "Punho acima do ombro + cotovelo estendido",
+          "joints": ["punho", "ombro", "cotovelo"],
+          "sources": ["MediaPipe Pose", "Sports2D"],
+          "manualCheck": "Pausar no contato e confirmar se a bola esta a frente do corpo.",
+          "nextAction": "Gravar 3 saques laterais curtos e parear com checagem manual.",
+          "recommendedSource": {
+            "name": "Sports2D",
+            "integrationMode": "external-cli",
+            "license": "BSD-3-Clause",
+            "status": "pilot-with-manual-review",
+            "cloneDecision": "do-not-clone-yet",
+            "nextAction": "Comparar contra checagem manual antes do relatorio."
+          }
+        }
+      ],
+      "sourceVideo": "reference/sports2d-demo.mp4",
+      "expectedAngles": "reference/sample-sports2d-saque.mot",
+      "sourceVideoExists": true,
+      "expectedAnglesExists": true,
+      "plannedCommand": "sports2d --video_input reference/sports2d-demo.mp4 --result_dir reference --show_realtime_results false --save_vid false --save_img false --calculate_angles true --save_angles true",
+      "run": null,
+      "status": "blocked-by-app-control",
+      "nextAction": "A politica de Controle de Aplicativo bloqueou o Sports2D local. Use WSL/Conda liberado ou ajuste a politica antes de executar clips reais."
+    }
+  ],
+  "nextCommand": "npm run video:env"
+}
