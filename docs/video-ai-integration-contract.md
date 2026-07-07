@@ -226,14 +226,14 @@ O app ainda nao salva o video original. Ele ja mostra um preview comprimido do f
 A analise local usa uma amostragem curta do video no navegador:
 
 - clips de ate 12 segundos;
-- uma atleta principal;
+- um atleta principal;
 - ate 10 frames amostrados;
 - uma evidencia gerada por analise;
 - status sempre `Revisar`;
 - preview simplificado dos landmarks usados na evidencia, com thumbnail comprimido do frame escolhido;
 - validacao manual da sugestao antes de enviar evidencias de IA ao relatorio.
 
-O arquivo `reference/sports2d-demo.mp4` foi baixado do repositorio Sports2D e fica disponivel como demo tecnico do prototipo. Ele serve para validar o fluxo de pose antes de usar um video proprio da atleta.
+O arquivo `reference/sports2d-demo.mp4` foi baixado do repositorio Sports2D e fica disponivel como demo tecnico do prototipo. Ele serve para validar o fluxo de pose antes de usar um video proprio do atleta.
 
 Regras iniciais:
 
@@ -248,7 +248,7 @@ O preview visual mostra um thumbnail comprimido do frame escolhido com um esquel
 Evidencias de IA seguem uma trava de qualidade:
 
 1. A analise cria o card como `Revisar`.
-2. A usuaria confirma ou descarta a sugestao olhando frame, landmarks e criterio.
+2. O usuario confirma ou descarta a sugestao olhando frame, landmarks e criterio.
 3. Apenas evidencias `Confirmada` podem ser enviadas ao relatorio.
 
 ## Calibracao IA x manual
@@ -256,7 +256,7 @@ Evidencias de IA seguem uma trava de qualidade:
 A tela de videos tambem registra uma checagem manual pareada com a evidencia de IA. Essa etapa existe para adaptar modelos genericos ao volei:
 
 1. A IA sugere um marcador, por exemplo `Punho acima do ombro`.
-2. A treinadora registra uma checagem manual olhando o frame e o criterio do fundamento.
+2. O treinador registra uma checagem manual olhando o frame e o criterio do fundamento.
 3. O app mostra o par `IA -> manual` no painel de calibracao.
 4. Divergencias viram ajuste de criterio antes de automatizar recomendacoes.
 
@@ -399,7 +399,7 @@ O pacote nao roda a IA sozinho. Ele prepara o experimento para rodar Sports2D, M
 - 3 clips reais revisados da fase;
 - 5 checagens manuais pareadas;
 - 80% ou mais de alinhamento;
-- revisao final da treinadora antes do relatorio.
+- revisao final do treinador antes do relatorio.
 
 Enquanto esses criterios nao forem atingidos, o status correto e `Preparar piloto`, nao `Pronto para piloto`.
 
@@ -538,7 +538,7 @@ Decisao atual: o projeto usa Sports2D como fonte open source de referencia e dep
 
 ## Prontidao por fundamento e fase
 
-A tela `Videos` mostra um painel de prontidao por fundamento e por fase do movimento. Ele nao mede performance esportiva da atleta; mede se o criterio automatico ja tem checagens manuais pareadas suficientes contra revisao manual.
+A tela `Videos` mostra um painel de prontidao por fundamento e por fase do movimento. Ele nao mede performance esportiva do atleta; mede se o criterio automatico ja tem checagens manuais pareadas suficientes contra revisao manual.
 
 Para contar nessa prontidao, a evidencia manual precisa usar `calibrationOf` apontando para a evidencia de IA. Comparacoes relacionadas ajudam a revisao visual, mas nao liberam piloto.
 
@@ -551,7 +551,7 @@ Estados atuais:
 - `Promissor`: pelo menos 3 checagens manuais e 70% ou mais de alinhamento.
 - `Pronto para piloto`: pelo menos 5 checagens manuais e 80% ou mais de alinhamento.
 
-Mesmo em `Pronto para piloto`, a IA continua como assistente. A treinadora valida o contexto antes de automatizar recomendacoes.
+Mesmo em `Pronto para piloto`, a IA continua como assistente. O treinador valida o contexto antes de automatizar recomendacoes.
 
 ## Plano de validacao real
 
@@ -567,7 +567,9 @@ Status atuais:
 
 - `Gravado`: clip existe e ainda precisa de analise.
 - `IA rodada`: MediaPipe, Sports2D ou outro pipeline ja gerou uma sugestao.
-- `Revisado com treinadora`: o clip ja foi conferido tecnicamente.
+- `Revisado com treinador`: o clip ja foi conferido tecnicamente.
+
+Quando uma evidencia de IA e gerada ou importada pela tela `Videos`, o app registra automaticamente um item no plano de validacao com status `IA rodada`. Isso conecta a analise ao controle de coleta: o clip passa a aparecer nos gates do piloto, mas ainda precisa de checagem manual pareada antes de contar como revisado.
 
 Esse plano nao substitui `calibrationOf`. Ele prepara a coleta: primeiro 3 clips reais revisados, depois evidencias automaticas pareadas com checagem manual.
 
@@ -590,7 +592,7 @@ No contrato `isa.video-evidence.v1`, essa fase fica em `phase`. Quando a fonte e
 Recomendacoes para o primeiro teste:
 
 - usar video de ate 12 segundos;
-- uma atleta principal visivel;
+- um atleta principal visivel;
 - camera parada;
 - corpo inteiro ou pelo menos tronco, bracos e pernas visiveis;
 - um fundamento por clip;
@@ -602,7 +604,7 @@ Limitacoes atuais:
 - as metricas sao aproximadas e devem ser revisadas visualmente;
 - ainda nao salva o video original nem um frame real anotado;
 - o preview guarda apenas um thumbnail comprimido, nao o video original;
-- a IA deve sugerir evidencia; a treinadora valida criterio e contexto.
+- a IA deve sugerir evidencia; o treinador valida criterio e contexto.
 
 ## Como adaptar MediaPipe
 
@@ -643,4 +645,4 @@ Uma evidencia so deve entrar em relatorio quando tiver:
 
 ## Regra de produto
 
-IA sugere evidencia. A treinadora valida criterio e contexto.
+IA sugere evidencia. O treinador valida criterio e contexto.

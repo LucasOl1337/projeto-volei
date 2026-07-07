@@ -14,7 +14,7 @@ Um dado de cena funciona como a ficha do exercicio. Quando a cena guarda `image`
 
 Foram geradas tres imagens realistas e salvas em `public/assets/`:
 
-- `game-reading-setter-front.png`: levantadora equilibrada perto da rede.
+- `game-reading-setter-front.png`: levantador equilibrado perto da rede.
 - `game-reading-pass-off-net.png`: visao aberta para leitura de passe fora do sistema.
 - `game-reading-open-line.png`: ataque contra bloqueio com corredor de paralela.
 

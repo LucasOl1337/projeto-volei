@@ -1,4 +1,4 @@
-export type PageId = 'dashboard' | 'treinos' | 'posicoes' | 'fisico-mobilidade' | 'relatorios' | 'exercicios' | 'estilos' | 'individual' | 'indicadores' | 'videos';
+export type PageId = 'dashboard' | 'treinos' | 'fisico-mobilidade' | 'relatorios' | 'exercicios' | 'estilos' | 'individual' | 'indicadores' | 'videos';
 
 export type TrainingStyle = 'Tecnico' | 'Tatico' | 'Fisico';
 
@@ -98,7 +98,6 @@ export interface PositionGuide {
 export const navigation = [
   { id: 'dashboard', label: 'Dashboard', hint: 'Indicadores principais' },
   { id: 'treinos', label: 'Treinos', hint: 'Sessoes e atividades' },
-  { id: 'posicoes', label: 'Posicoes', hint: 'Decisoes por funcao' },
   { id: 'fisico-mobilidade', label: 'FISICO E MOBILIDADE', hint: 'Exercicios fisicos e mobilidade' },
   { id: 'relatorios', label: 'Relatorios', hint: 'Anotacoes e conclusoes' },
   { id: 'exercicios', label: 'Exercicios', hint: 'Biblioteca por fundamento' },
@@ -115,12 +114,12 @@ export const positionGuides: PositionGuide[] = [
     shortName: 'MB',
     role: 'Defende o centro da rede, fecha bloqueios nas pontas e ataca bolas rapidas quando o passe permite.',
     courtBase: 'Z3 na rede; costuma sair para o libero no fundo quando o sistema permite.',
-    primaryDecision: 'Ler o levantador adversario cedo sem abandonar a atacante de meio.',
+    primaryDecision: 'Ler o levantador adversario cedo sem abandonar o atacante de meio.',
     priority: 'Tempo de bloqueio, deslocamento curto na rede e transicao rapida para ataque.',
-    avoid: 'Saltar no chute da levantadora antes de enxergar ombro, bola e atacante.',
+    avoid: 'Saltar no chute do levantador antes de enxergar ombro, bola e atacante.',
     keyFundamentals: ['Bloqueio', 'Ataque rapido', 'Transicao', 'Saque tatico'],
-    indicators: ['Toques de bloqueio que viram contra-ataque', 'Ataques de primeiro tempo apos passe bom', 'Fechamento correto com ponta ou oposta', 'Erros de rede ou invasao'],
-    evidence: ['Maos passando a rede sem tocar na fita', 'Primeiro passo lateral curto e limpo', 'Aterrissagem equilibrada depois do bloqueio', 'Chamada de bola rapida antes do levantamento'],
+    indicators: ['Toques de bloqueio que viram contra-ataque', 'Ataques de primeiro tempo apos passe bom', 'Fechamento correto com ponta ou oposto', 'Erros de rede ou invasao'],
+    evidence: ['Maos passando a rede sem tocar na fita', 'Primeiro passo lateral curto e limpo', 'Aterrissagem equilibrada depois do bloqueio', 'Preparacao de bola rapida antes do levantamento'],
     trainingTabs: [
       { label: 'Tecnico', focus: 'Fechar maos e invadir espaco no bloqueio.', drill: 'Passo lateral curto na parede com parada de 2 segundos e maos acima da cabeca.' },
       { label: 'Tatico', focus: 'Escolher entre marcar meio ou ajudar na ponta.', drill: 'Assistir 6 bolas e pausar antes do levantamento para prever a direcao.' },
@@ -134,10 +133,10 @@ export const positionGuides: PositionGuide[] = [
     role: 'Organiza o ataque no segundo toque, ajusta o ritmo do jogo e escolhe a melhor atacante para cada bola.',
     courtBase: 'Busca a zona de levantamento perto da Z2/Z3, mesmo quando recebe fora do alvo.',
     primaryDecision: 'Distribuir a bola pelo melhor equilibrio entre qualidade do passe, bloqueio adversario e atacante disponivel.',
-    priority: 'Precisao de bola alta, velocidade de decisao e comunicacao antes do contato.',
+    priority: 'Precisao de bola alta, velocidade de decisao e corpo equilibrado antes do contato.',
     avoid: 'Forcar uma bola rapida quando o passe tirou a equipe do sistema.',
     keyFundamentals: ['Levantamento', 'Defesa', 'Bloqueio na Z2', 'Saque'],
-    indicators: ['Bolas atacaveis por tipo de passe', 'Distribuicao entre ponta, central e oposta', 'Ataques com bloqueio simples', 'Erros de dois toques ou conducao'],
+    indicators: ['Bolas atacaveis por tipo de passe', 'Distribuicao entre ponta, central e oposto', 'Ataques com bloqueio simples', 'Erros de dois toques ou conducao'],
     evidence: ['Pe chegando antes das maos', 'Bola saindo com altura e distancia combinadas', 'Ombro neutro para esconder a escolha', 'Backup de levantamento quando defende a primeira bola'],
     trainingTabs: [
       { label: 'Tecnico', focus: 'Chegar embaixo da bola antes de levantar.', drill: 'Toque na parede alternando alvo alto e alvo medio, recuperando base a cada contato.' },
@@ -149,14 +148,14 @@ export const positionGuides: PositionGuide[] = [
     id: 'oposto',
     name: 'Oposto',
     shortName: 'OPP',
-    role: 'Ataca pela saida, oferece bola de seguranca e bloqueia muitas bolas da ponteira adversaria.',
+    role: 'Ataca pela saida, oferece bola de seguranca e bloqueia muitas bolas do ponteiro adversario.',
     courtBase: 'Z2 na rede e opcoes de ataque do fundo conforme sistema da equipe.',
     primaryDecision: 'Ser agressiva na bola boa e inteligente na bola quebrada.',
-    priority: 'Ataque de saida, bloqueio contra ponteira e virada de bola sob pressao.',
+    priority: 'Ataque de saida, bloqueio contra ponteiro e virada de bola sob pressao.',
     avoid: 'Bater forte em toda bola sem observar bloqueio, cobertura e espaco livre.',
     keyFundamentals: ['Ataque', 'Bloqueio', 'Defesa direita', 'Cobertura'],
-    indicators: ['Eficiencia de ataque na saida', 'Bloqueios ou amortecimentos contra ponteira', 'Erros nao forcados em bola alta', 'Pontos em rally longo'],
-    evidence: ['Passada ajustada para bola um pouco fora da antena', 'Mao atacando diagonal ou paralela com intencao', 'Fechamento de bloqueio com a central', 'Recuperacao depois de cobrir largada'],
+    indicators: ['Eficiencia de ataque na saida', 'Bloqueios ou amortecimentos contra ponteiro', 'Erros nao forcados em bola alta', 'Pontos em rally longo'],
+    evidence: ['Passada ajustada para bola um pouco fora da antena', 'Mao atacando diagonal ou paralela com intencao', 'Fechamento de bloqueio com o central', 'Recuperacao depois de cobrir largada'],
     trainingTabs: [
       { label: 'Tecnico', focus: 'Controlar direcao do ataque na saida.', drill: 'Passada com toalha alternando finalizacao em diagonal e paralela imaginaria.' },
       { label: 'Tatico', focus: 'Decidir entre bater, explorar ou colocar.', drill: 'Pausar videos de ataque e nomear a melhor decisao antes do contato.' },
@@ -173,12 +172,12 @@ export const positionGuides: PositionGuide[] = [
     priority: 'Qualidade da recepcao, leitura de ataque e controle emocional em bolas dificeis.',
     avoid: 'Resolver tudo com manchete alta sem direcionar a bola para uma zona util.',
     keyFundamentals: ['Recepcao', 'Defesa', 'Cobertura', 'Levantamento de emergencia'],
-    indicators: ['Passe positivo para zona de levantamento', 'Defesas que mantem rally vivo', 'Bolas cobertas apos bloqueio', 'Erros de comunicacao no fundo'],
-    evidence: ['Plataforma formando angulo antes do contato', 'Base baixa antes do ataque adversario', 'Chamada clara: minha, sua, fora', 'Levantamento de emergencia alto para a ponta'],
+    indicators: ['Passe positivo para zona de levantamento', 'Defesas que mantem rally vivo', 'Bolas cobertas apos bloqueio', 'Erros de posicionamento no fundo'],
+    evidence: ['Plataforma formando angulo antes do contato', 'Base baixa antes do ataque adversario', 'Primeiro passo ajustado a zona da bola', 'Levantamento de emergencia alto para a ponta'],
     trainingTabs: [
       { label: 'Tecnico', focus: 'Plataforma estavel e direcao do passe.', drill: 'Manchete na parede mirando uma fita, contando sequencias de controle.' },
-      { label: 'Tatico', focus: 'Ler largada, diagonal e bola forte.', drill: 'Marcar em video o ombro da atacante e pausar antes do contato para prever a zona.' },
-      { label: 'Fisico', focus: 'Base baixa com deslocamento curto.', drill: 'Tres marcas no chao, comando de direcao e volta ao centro em 20 segundos.' },
+      { label: 'Tatico', focus: 'Ler largada, diagonal e bola forte.', drill: 'Marcar em video o ombro do atacante e pausar antes do contato para prever a zona.' },
+      { label: 'Fisico', focus: 'Base baixa com deslocamento curto.', drill: 'Tres marcas no chao, sequencia de direcoes e volta ao centro em 20 segundos.' },
     ],
   },
   {
@@ -287,8 +286,8 @@ export const exerciseLibrary: ExerciseLibraryItem[] = [
     environment: 'Individual em casa',
     materials: 'Fita no chao, bola de meia ou objeto leve e cronometro.',
     duration: '6 a 10 min',
-    setup: 'Marque tres pontos no chao. Saia da base defensiva, toque o ponto chamado por voce mesmo e volte ao centro mantendo postura baixa.',
-    variations: ['Usar comandos em voz alta', 'Adicionar bola de meia para controlar apos o deslocamento', 'Fazer series de 20 segundos'],
+    setup: 'Marque tres pontos no chao. Saia da base defensiva, toque o ponto da sequencia e volte ao centro mantendo postura baixa.',
+    variations: ['Usar sequencia escrita de zonas', 'Adicionar bola de meia para controlar apos o deslocamento', 'Fazer series de 20 segundos'],
     metric: 'Repeticoes com postura baixa e tempo sem perder equilibrio.',
   },
 ];
@@ -317,9 +316,9 @@ export const physicalTrainingLibrary: PhysicalTrainingItem[] = [
     athletes: '1 a 8 atletas',
     materials: 'Fita no chao, cones e espaco de 3 a 5 metros.',
     duration: '8 a 10 min',
-    setup: 'Faça um deslocamento lateral curto, freie dentro da marca e segure a base por 2 segundos antes de voltar.',
+    setup: 'Faca um deslocamento lateral curto, freie dentro da marca e segure a base por 2 segundos antes de voltar.',
     mobility: 'Antes: mobilidade de tornozelo, 90/90 de quadril e rotacao toracica em base baixa.',
-    variations: ['Freio bilateral', 'Freio em uma perna com baixa altura', 'Comando visual para mudar direita/esquerda'],
+    variations: ['Freio bilateral', 'Freio em uma perna com baixa altura', 'Sinal visual para mudar direita/esquerda'],
     metric: 'Numero de freios sem joelho cair para dentro e sem perder equilibrio.',
     rest: '45 a 75 s entre series curtas.',
     evidence: 'Aquecimentos com core, equilibrio e controle de tronco podem reduzir severidade e carga de lesoes por sobreuso.',
@@ -347,9 +346,9 @@ export const physicalTrainingLibrary: PhysicalTrainingItem[] = [
     athletes: '1 a 10 atletas',
     materials: 'Tres marcas no chao e cronometro.',
     duration: '8 a 12 min',
-    setup: 'Marque centro, direita e esquerda. Saia do centro, toque a marca chamada, freie e volte mantendo base baixa.',
+    setup: 'Marque centro, direita e esquerda. Saia do centro, toque a marca da sequencia, freie e volte mantendo base baixa.',
     mobility: 'Antes: deslocamento lateral leve, abertura de quadril e ativacao de panturrilha.',
-    variations: ['Com comando de voz', 'Com comando visual', 'Com bola leve apos o freio'],
+    variations: ['Com sequencia escrita', 'Com sinal visual', 'Com bola leve apos o freio'],
     metric: 'Repeticoes limpas em 15 a 20 s sem subir demais a postura.',
     rest: '60 a 90 s entre tiros para manter velocidade real.',
     evidence: 'Preparacao fisica de volei costuma combinar agilidade intensa com movimentos parecidos com o ritmo do jogo.',
@@ -400,6 +399,6 @@ export const mobilityPrep = [
 
 export const styleGuides = [
   { name: 'Tecnico', focus: 'Precisao dos fundamentos em exercicios solo', activities: 'Parede, bola leve, toalha, alvo com fita e repeticoes curtas' },
-  { name: 'Tatico', focus: 'Leitura individual e tomada de decisao em casa', activities: 'Simulacao de posicao, comandos em voz alta e revisao manual de video' },
+  { name: 'Tatico', focus: 'Leitura individual e tomada de decisao em casa', activities: 'Simulacao de posicao, marcas visuais no chao, alvos na parede e revisao manual de video' },
   { name: 'Fisico', focus: 'Forca, potencia, mobilidade e prevencao em pouco espaco', activities: 'Core, estabilidade, agachamento, deslocamento curto, aterrissagem controlada e preparacao de ombro' },
 ];

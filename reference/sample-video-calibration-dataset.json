@@ -47,7 +47,7 @@
       "fundamental": "Saque",
       "phase": "Contato",
       "marker": "Contato alto no saque",
-      "status": "Revisado com treinadora",
+      "status": "Revisado com treinador",
       "createdAt": "2026-07-01T12:00:00.000Z"
     }
   ],
@@ -81,7 +81,7 @@
         "source": "Manual",
         "athlete": "Isa",
         "timeRange": "00:04.20 - 00:04.80",
-        "metric": "Contato alto validado pela treinadora",
+        "metric": "Contato alto validado pelo treinador",
         "value": "sim",
         "calibrationOf": "sports2d-saque-braco",
         "reviewedAt": "2026-07-01T12:05:00.000Z"

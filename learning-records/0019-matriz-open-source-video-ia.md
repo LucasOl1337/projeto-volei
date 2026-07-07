@@ -8,7 +8,7 @@ No volei, isso significa separar:
 
 - gesto individual: saque, recepcao, ataque, bloqueio e defesa;
 - fase do gesto: preparacao, contato, alcance, aterrissagem ou recuperacao;
-- evidencia: angulo, ponto do corpo, tempo do video e criterio da treinadora.
+- evidencia: angulo, ponto do corpo, tempo do video e criterio do treinador.
 
 ## Conceito de desenvolvimento
 
@@ -32,7 +32,7 @@ Aqui usamos quatro criterios simples:
 
 Usar 3 clips reais de saque e comparar:
 
-1. evidencia manual da treinadora;
+1. evidencia manual do treinador;
 2. sugestao MediaPipe local;
 3. saida Sports2D convertida;
 4. dataset de calibracao exportado.

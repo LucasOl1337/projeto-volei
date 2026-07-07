@@ -2,7 +2,7 @@
 
 ## Dominio do volei
 
-Para adaptar IA ao volei, nao basta ter o video. O sistema precisa guardar o que a IA sugeriu e o que a treinadora confirmou para o mesmo momento do fundamento.
+Para adaptar IA ao volei, nao basta ter o video. O sistema precisa guardar o que a IA sugeriu e o que o treinador confirmou para o mesmo momento do fundamento.
 
 Esse par e a unidade de aprendizado: `IA -> revisao manual`.
 

@@ -4,7 +4,7 @@ Data: 2026-07-01
 
 ## Aprendizado
 
-Um plano de treino de volei precisa considerar a atleta: objetivo, estagio e posicao. Uma iniciante que joga como libero nao deve receber a mesma semana de uma atacante avancada.
+Um plano de treino de volei precisa considerar o atleta: objetivo, estagio e posicao. Um iniciante que joga como libero nao deve receber a mesma semana de um atacante avancado.
 
 ## Conceito de desenvolvimento
 
@@ -24,4 +24,4 @@ A aba `Plano de treino` nao deve parecer uma biblioteca de exercicios soltos. Po
 
 ## Proxima evolucao
 
-Quando houver cadastro da atleta, o app pode montar o plano usando objetivo, nivel e posicao.
+Quando houver cadastro do atleta, o app pode montar o plano usando objetivo, nivel e posicao.

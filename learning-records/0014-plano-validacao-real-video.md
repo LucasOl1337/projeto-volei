@@ -4,7 +4,7 @@
 
 Um fundamento nao fica confiavel com um unico clip. Saque, recepcao, defesa, ataque e bloqueio precisam de repeticoes comparaveis, gravadas em condicoes parecidas.
 
-Por isso, a IA deve ser testada como uma sequencia de treino: gravar, rodar analise, revisar com a treinadora e so depois usar como criterio de relatorio.
+Por isso, a IA deve ser testada como uma sequencia de treino: gravar, rodar analise, revisar com o treinador e so depois usar como criterio de relatorio.
 
 ## Conceito de desenvolvimento
 

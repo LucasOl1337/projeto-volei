@@ -2,7 +2,7 @@
 
 ## Dominio do volei
 
-Um teste de IA precisa saber exatamente quais clips entram. No volei, cada clip deve apontar para atleta, fundamento, fase do movimento e marcador tecnico.
+Um teste de IA precisa saber exatamente quais clips entram. No volei, cada clip deve apontar para o atleta, fundamento, fase do movimento e marcador tecnico.
 
 Exemplo: `Isa - Saque - Contato - ponto de contato`.
 

@@ -2,12 +2,12 @@
 
 ## Dominio
 
-O treino em casa nao substitui o treino coletivo, mas pode preparar a atleta para chegar melhor na quadra. A regra usada nesta mudanca foi: cada posicao treina em casa a decisao ou gesto que mais aparece em jogo.
+O treino em casa nao substitui o treino coletivo, mas pode preparar o atleta para chegar melhor na quadra. A regra usada nesta mudanca foi: cada posicao treina em casa a decisao ou gesto que mais aparece em jogo.
 
 - Central: leitura, bloqueio, deslocamento lateral e transicao.
 - Levantador: toque, escolha de jogada e solucao para passe ruim.
 - Oposto: ataque de saida, bola dificil, bloqueio e cobertura direita.
-- Libero: recepcao, defesa, leitura, comunicacao e levantamento de emergencia.
+- Libero: recepcao, defesa, leitura, controle de plataforma e levantamento de emergencia.
 - Ponteiro: recepcao, bola alta fora do sistema, ataque e cobertura.
 
 ## Conceito de desenvolvimento

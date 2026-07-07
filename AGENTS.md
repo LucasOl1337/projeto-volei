@@ -1,6 +1,6 @@
 # Agent Guide: Projeto Isa
 
-Este workspace e ao mesmo tempo um app de volei e um ambiente de ensino. Todo agente deve preservar as duas dimensoes: entregar produto e ensinar a usuaria a construir produto.
+Este workspace e ao mesmo tempo um app de volei e um ambiente de ensino. Todo agente deve preservar as duas dimensoes: entregar produto e ensinar o usuario a construir produto.
 
 ## Metodo obrigatorio
 
@@ -20,13 +20,13 @@ Este workspace e ao mesmo tempo um app de volei e um ambiente de ensino. Todo ag
 
 ## Ensino
 
-- A usuaria conhece volei; use isso como ponte para explicar codigo.
+- O usuario conhece volei; use isso como ponte para explicar codigo.
 - Explique componentes como partes de uma equipe: cada um tem funcao clara.
 - Explique estado como informacao que muda com a jogada/interacao.
 - Explique props como passe de informacao de um componente para outro.
 - Cada licao HTML deve ser curta, bonita e revisavel.
-- Sempre que criar ou atualizar uma licao em `lessons/*.html`, abra a licao no navegador da usuaria ao final. Prefira a URL do servidor local quando ele estiver rodando; se nao estiver, abra o arquivo HTML diretamente.
-- Materiais de ensino (`MISSION.md`, `lessons/`, `reference/`, `learning-records/`) sao internos ao processo de desenvolvimento. Nao exponha uma guia de aprendizado dentro do app/site publico sem pedido explicito da usuaria.
+- Sempre que criar ou atualizar uma licao em `lessons/*.html`, abra a licao no navegador do usuario ao final. Prefira a URL do servidor local quando ele estiver rodando; se nao estiver, abra o arquivo HTML diretamente.
+- Materiais de ensino (`MISSION.md`, `lessons/`, `reference/`, `learning-records/`) sao internos ao processo de desenvolvimento. Nao exponha uma guia de aprendizado dentro do app/site publico sem pedido explicito do usuario.
 
 ## Visual
 
@@ -34,3 +34,5 @@ Este workspace e ao mesmo tempo um app de volei e um ambiente de ensino. Todo ag
 - Salve assets usados pelo app em `public/assets/`.
 - Nao use imagem como substituta de UI real: controles, textos e tabelas devem ser codigo.
 - O visual gerado de quadra pode ser reaproveitado em funcionalidades do produto, como posicionamento em quadra, rotacao, cobertura, recepcao e analise manual de video.
+- Evite telas com tabelas improvisadas, alinhamentos aleatorios e quadros massivos sem hierarquia. Toda pagina deve deixar claro o que e prioridade, o que e criterio de apoio e o que e detalhe operacional.
+- Preserve recursos existentes, mas reorganize por hierarquia visual antes de adicionar novas caixas: resumo primeiro, agrupamentos consistentes depois, listas densas so quando forem comparaveis.

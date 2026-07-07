@@ -6,7 +6,6 @@ import {
   fundamentals,
   mobilityPrep,
   physicalTrainingLibrary,
-  positionGuides,
   sessions,
   styleGuides,
   type PageId,
@@ -28,12 +27,10 @@ const courtZones = [
 
 export default function SupportPage({ page }: SupportPageProps) {
   const [selectedFundamental, setSelectedFundamental] = useState('Todos');
-  const [selectedPositionId, setSelectedPositionId] = useState(positionGuides[0]?.id ?? 'central');
   const fundamentalOptions = ['Todos', ...fundamentals.map((item) => item.name)];
   const visibleExercises = selectedFundamental === 'Todos'
     ? exerciseLibrary
     : exerciseLibrary.filter((exercise) => exercise.fundamental === selectedFundamental);
-  const selectedPosition = positionGuides.find((position) => position.id === selectedPositionId) ?? positionGuides[0];
 
   if (page === 'fisico-mobilidade') {
     return (
@@ -107,115 +104,6 @@ export default function SupportPage({ page }: SupportPageProps) {
                   </div>
                   <p className="mt-2 text-xs font-semibold leading-5 text-[var(--isa-soft)]">{item.drill}</p>
                   <p className="mt-2 text-xs leading-5 text-[var(--isa-muted)]">{item.reason}</p>
-                </article>
-              ))}
-            </div>
-          </Section>
-        </aside>
-      </div>
-    );
-  }
-
-  if (page === 'posicoes') {
-    return (
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-5">
-          <Section
-            title="Posicoes do volei"
-            action={<span className="rounded-full border border-[rgba(69,215,200,0.28)] bg-[rgba(69,215,200,0.08)] px-3 py-1.5 text-xs font-semibold text-[var(--isa-teal)]">{positionGuides.length} funcoes</span>}
-          >
-            <div className="border-b border-white/10 p-4">
-              <div className="flex flex-wrap gap-2">
-                {positionGuides.map((position) => (
-                  <button
-                    key={position.id}
-                    type="button"
-                    onClick={() => setSelectedPositionId(position.id)}
-                    className={`min-h-10 rounded-lg border px-3 text-left text-xs font-semibold transition ${selectedPosition.id === position.id ? 'border-[var(--isa-line-strong)] bg-[rgba(69,215,200,0.16)] text-[var(--isa-teal)]' : 'border-white/10 bg-white/[0.025] text-[var(--isa-muted)] hover:text-white'}`}
-                  >
-                    <span className="block text-sm leading-5">{position.name}</span>
-                    <span className="block text-[10px] uppercase tracking-[0.16em]">{position.shortName}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-              <article className="rounded-xl border border-white/10 bg-white/[0.025] p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="metric-label">Funcao em quadra</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-white">{selectedPosition.name}</h2>
-                  </div>
-                  <span className="rounded-lg border border-[rgba(255,178,56,0.28)] bg-[rgba(255,178,56,0.08)] px-3 py-2 text-sm font-bold text-[var(--isa-amber)]">
-                    {selectedPosition.shortName}
-                  </span>
-                </div>
-                <p className="mt-4 text-sm leading-6 text-[var(--isa-soft)]">{selectedPosition.role}</p>
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-white/10 bg-black/10 p-3">
-                    <span className="metric-label">Base de quadra</span>
-                    <p className="mt-2 text-sm font-semibold leading-6 text-white">{selectedPosition.courtBase}</p>
-                  </div>
-                  <div className="rounded-lg border border-[rgba(69,215,200,0.22)] bg-[rgba(69,215,200,0.055)] p-3">
-                    <span className="metric-label">Prioridade</span>
-                    <p className="mt-2 text-sm font-semibold leading-6 text-white">{selectedPosition.priority}</p>
-                  </div>
-                </div>
-              </article>
-
-              <aside className="grid content-start gap-3">
-                <div className="rounded-xl border border-[rgba(118,220,110,0.22)] bg-[rgba(118,220,110,0.055)] p-4">
-                  <span className="metric-label">Melhor decisao</span>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-white">{selectedPosition.primaryDecision}</p>
-                </div>
-                <div className="rounded-xl border border-[rgba(255,106,87,0.22)] bg-[rgba(255,106,87,0.055)] p-4">
-                  <span className="metric-label">Evitar</span>
-                  <p className="mt-2 text-sm leading-6 text-[var(--isa-soft)]">{selectedPosition.avoid}</p>
-                </div>
-              </aside>
-            </div>
-          </Section>
-
-          <Section title="Treino por estilo">
-            <div className="grid gap-4 p-4 md:grid-cols-3">
-              {selectedPosition.trainingTabs.map((tab) => (
-                <article key={tab.label} className="rounded-xl border border-white/10 bg-white/[0.025] p-4">
-                  <span className="rounded-md border border-[rgba(69,215,200,0.28)] bg-[rgba(69,215,200,0.08)] px-2 py-1 text-[10px] font-bold text-[var(--isa-teal)]">{tab.label}</span>
-                  <h3 className="mt-4 text-sm font-semibold text-white">{tab.focus}</h3>
-                  <p className="mt-2 text-xs leading-5 text-[var(--isa-soft)]">{tab.drill}</p>
-                </article>
-              ))}
-            </div>
-          </Section>
-        </div>
-
-        <aside className="space-y-5">
-          <Section title="Fundamentos-chave">
-            <div className="flex flex-wrap gap-2 p-4">
-              {selectedPosition.keyFundamentals.map((fundamental) => (
-                <span key={fundamental} className="rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-xs font-semibold text-[var(--isa-soft)]">
-                  {fundamental}
-                </span>
-              ))}
-            </div>
-          </Section>
-
-          <Section title="Indicadores">
-            <div className="space-y-3 p-4">
-              {selectedPosition.indicators.map((indicator) => (
-                <article key={indicator} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
-                  <p className="text-sm leading-6 text-[var(--isa-soft)]">{indicator}</p>
-                </article>
-              ))}
-            </div>
-          </Section>
-
-          <Section title="Evidencias para relatorio">
-            <div className="space-y-3 p-4">
-              {selectedPosition.evidence.map((evidence) => (
-                <article key={evidence} className="rounded-lg border border-[rgba(69,215,200,0.18)] bg-[rgba(69,215,200,0.045)] p-3">
-                  <p className="text-xs font-semibold leading-5 text-[var(--isa-soft)]">{evidence}</p>
                 </article>
               ))}
             </div>
@@ -405,7 +293,7 @@ export default function SupportPage({ page }: SupportPageProps) {
           <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div className="relative min-h-[420px] overflow-hidden rounded-xl border border-white/10 bg-[#061011] max-[820px]:min-h-[300px]">
               <img
-                src="/assets/learning-volleyball-system.png"
+                src="public/assets/learning-volleyball-system.png"
                 alt="Quadra usada como referencia visual para posicionamento"
                 className="h-full min-h-[420px] w-full object-cover max-[820px]:min-h-[300px]"
                 draggable={false}

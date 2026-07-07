@@ -2,7 +2,7 @@
 
 ## Dominio do volei
 
-Um fundamento nao vira indicador confiavel so porque apareceu no video. Primeiro existe uma leitura tecnica: qual foi o marcador, qual frame importa, o que a atleta fez e qual ajuste vem no proximo treino.
+Um fundamento nao vira indicador confiavel so porque apareceu no video. Primeiro existe uma leitura tecnica: qual foi o marcador, qual frame importa, o que o atleta fez e qual ajuste vem no proximo treino.
 
 ## Conceito de desenvolvimento
 
@@ -19,4 +19,4 @@ Esse vinculo funciona como um passe entre componentes: o card de IA passa seu `i
 
 ## Proximo criterio
 
-Testar com clips reais de saque, recepcao, ataque e defesa. Para cada fundamento, comparar o que a IA marcou com o que a treinadora marcou no mesmo frame.
+Testar com clips reais de saque, recepcao, ataque e defesa. Para cada fundamento, comparar o que a IA marcou com o que o treinador marcou no mesmo frame.

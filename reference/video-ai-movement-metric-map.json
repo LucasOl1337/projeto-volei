@@ -60,7 +60,7 @@
       "metric": "Flexao de joelho + eixo do tronco",
       "joints": ["quadril", "joelho", "tornozelo", "ombro", "tronco"],
       "sources": ["Sports2D", "Vert Tracker"],
-      "manualCheck": "Checar se a atleta cai pronta para a proxima defesa, sem joelho colapsar.",
+      "manualCheck": "Checar se o atleta cai pronto para a proxima defesa, sem joelho colapsar.",
       "nextAction": "Usar primeiro como prevencao e qualidade de queda, nao como nota automatica."
     },
     {

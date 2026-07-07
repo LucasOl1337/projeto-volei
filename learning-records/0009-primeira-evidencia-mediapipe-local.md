@@ -23,7 +23,7 @@ MediaPipe fica como base do MVP no navegador porque permite testar sem backend p
 
 ## Proximo passo
 
-Validar com um video real da atleta:
+Validar com um video real do atleta:
 
 1. Gravar um clip curto de saque ou recepcao.
 2. Rodar a analise local.

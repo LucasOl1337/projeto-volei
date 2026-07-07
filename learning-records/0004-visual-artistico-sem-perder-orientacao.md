@@ -10,7 +10,7 @@ A arte nao substitui a interface. Tabelas, formularios, indicadores, filtros e i
 
 ## Ponte com volei
 
-No treino, um recurso visual bom funciona como uma marca no chao: orienta a atleta sem atrapalhar o movimento. No frontend, a imagem deve cumprir esse mesmo papel. Ela cria contexto, mas nao pode competir com o fundamento, a metrica, a evidencia ou a proxima acao.
+No treino, um recurso visual bom funciona como uma marca no chao: orienta o atleta sem atrapalhar o movimento. No frontend, a imagem deve cumprir esse mesmo papel. Ela cria contexto, mas nao pode competir com o fundamento, a metrica, a evidencia ou a proxima acao.
 
 ## Regra para proximos ciclos
 

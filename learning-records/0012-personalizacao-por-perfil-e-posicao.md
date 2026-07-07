@@ -14,6 +14,6 @@ Dados coletados no perfil:
 - tempo disponivel
 - limitacoes e espaco
 
-Depois do questionario, a atleta confirma a posicao em cards: Levantador, Libero, Central, Ponteiro ou Oposto. A posicao confirmada fica salva no navegador e passa a filtrar fundamentos, exercicios, leitura de jogo, foco fisico, foco mental, plano semanal, relatorios, indicadores e videos.
+Depois do questionario, o atleta confirma a posicao em cards: Levantador, Libero, Central, Ponteiro ou Oposto. A posicao confirmada fica salva no navegador e passa a filtrar fundamentos, exercicios, leitura de jogo, foco fisico, foco mental, plano semanal, relatorios, indicadores e videos.
 
 Conceito de desenvolvimento: estado e a informacao que muda com a interacao. Neste passo, o perfil e a posicao escolhida viraram estados salvos localmente. A interface le esses estados e monta o treino certo para aquela pessoa.

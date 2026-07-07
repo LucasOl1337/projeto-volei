@@ -32,7 +32,7 @@ No Projeto Isa, o piloto so pode virar recomendacao automatica quando a evidenci
 - 3 clips reais revisados da fase.
 - 5 checagens manuais pareadas.
 - 80% ou mais de alinhamento.
-- Revisao final da treinadora antes do relatorio.
+- Revisao final do treinador antes do relatorio.
 
 ## Proximo teste real
 

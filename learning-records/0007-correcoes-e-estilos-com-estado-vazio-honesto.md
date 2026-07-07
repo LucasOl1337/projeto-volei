@@ -2,7 +2,7 @@
 
 ## Decisao de produto
 
-As telas `Correcoes` e `Estilos` precisam ajudar a atleta a decidir o proximo treino, nao apenas mostrar listas. Como o app ainda nao tem historico real de correcoes salvas, a interface deve separar claramente modelos sugeridos de registros reais.
+As telas `Correcoes` e `Estilos` precisam ajudar o atleta a decidir o proximo treino, nao apenas mostrar listas. Como o app ainda nao tem historico real de correcoes salvas, a interface deve separar claramente modelos sugeridos de registros reais.
 
 ## Mudanca implementada
 

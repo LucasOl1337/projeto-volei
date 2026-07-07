@@ -18,7 +18,7 @@ No volei, isso significa separar:
 
 Dados antes de automacao.
 
-Antes de pedir para uma IA classificar um movimento, o app precisa saber quais campos devem existir e como a treinadora vai revisar o resultado. Isso e parecido com treino: antes de cobrar velocidade no ataque, primeiro definimos a passada e o ponto de contato.
+Antes de pedir para uma IA classificar um movimento, o app precisa saber quais campos devem existir e como o treinador vai revisar o resultado. Isso e parecido com treino: antes de cobrar velocidade no ataque, primeiro definimos a passada e o ponto de contato.
 
 ## Decisao
 
@@ -57,7 +57,7 @@ Aprendizado importante: detectar pose nao e o mesmo que corrigir fundamento. O a
 - O cotovelo estendeu na finalizacao?
 - A base teve flexao suficiente de joelho?
 
-A resposta da IA, quando essa fase voltar, vira evidencia sugerida, nao veredito. A treinadora continua responsavel por validar contexto, criterio e proxima acao.
+A resposta da IA, quando essa fase voltar, vira evidencia sugerida, nao veredito. O treinador continua responsavel por validar contexto, criterio e proxima acao.
 
 Conceito de desenvolvimento: separar `detectar` de `decidir`. O detector encontra pontos do corpo; o produto transforma esses pontos em evidencias; a decisao tecnica continua no criterio de treino.
 

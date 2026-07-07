@@ -17,20 +17,21 @@ const localStorage = (() => {
   }
 })();
 
-const navItems = [
-  ['dashboard', '01', 'Visao geral', 'Treino individual em casa'],
-  ['treinos', '02', 'Plano de treino', 'Sessoes e atividades'],
-  ['posicoes', '03', 'Posicoes', 'Decisoes por funcao'],
-  ['fisico-mobilidade', '04', 'Fisico e Mobilidade', 'Exercicios fisicos e mobilidade'],
-  ['exercicios', '05', 'Exercicios em casa', 'Biblioteca por posicao'],
-  ['relatorios', '06', 'Relatorio', 'Anotacoes e conclusoes'],
-  ['indicadores', '07', 'Evolucao', 'Tabelas comparativas'],
-  ['videos', '08', 'Videos', 'Preparacao para analise'],
-  ['individual', '09', 'Correcoes', 'Exercicios e correcoes'],
-  ['leitura', '10', 'Leitura de jogo', 'Padroes e decisoes'],
+const pageItems = [
+  ['dashboard', '01', 'Visão geral', 'Resumo do atleta'],
+  ['treinos', '02', 'Plano de treino', 'Semana de treino'],
+  ['exercicios', '03', 'Exercícios em casa', 'Biblioteca por posição'],
+  ['fisico-mobilidade', '04', 'Físico e Mobilidade', 'Força, mobilidade e prevenção'],
+  ['individual', '05', 'Correções', 'Metas práticas'],
+  ['leitura', '06', 'Leitura de jogo', 'Decisões em quadra'],
+  ['videos', '07', 'Vídeos', 'Análise premium'],
+  ['relatorios', '08', 'Progresso', 'Registro e evolução'],
 ];
 
-const sessions = [];
+const navItems = pageItems;
+
+const completedTrainingStorageKey = 'isa.completedTrainings';
+let sessions = readCompletedTrainingSessions();
 
 const fundamentals = [
   { name: 'Saque', score: 0, delta: 0, color: '#45d7c8' },
@@ -94,6 +95,48 @@ const videoMotionPhases = [
   },
 ];
 
+const videoSampleClips = [
+  {
+    id: 'saque-baixo-animado',
+    title: 'Saque baixo animado',
+    fundamental: 'Saque',
+    phase: 'Contato',
+    duration: '14 s',
+    source: 'public/assets/videos/sample-saque-baixo.webm',
+    fileName: 'sample-saque-baixo.webm',
+    license: 'CC BY-SA 4.0',
+    credit: 'Daniel Sanchez Moll / Wikimedia Commons',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Volleyball_serve.ogv',
+    focus: 'Bom para testar contato alto, linha do braco e preview sem expor atleta real.',
+  },
+  {
+    id: 'jogo-quadra-curto',
+    title: 'Jogo curto em quadra',
+    fundamental: 'Recepcao',
+    phase: 'Preparacao',
+    duration: '12 s',
+    source: 'public/assets/videos/sample-jogo-quadra.webm',
+    fileName: 'sample-jogo-quadra.webm',
+    license: 'CC BY-SA 4.0',
+    credit: 'Nsambaivan / Wikimedia Commons',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Volleyball.ogv',
+    focus: 'Ajuda a testar video real de quadra, enquadramento amplo e leitura de base.',
+  },
+  {
+    id: 'ace-paris',
+    title: 'Ace em rally curto',
+    fundamental: 'Saque',
+    phase: 'Finalizacao',
+    duration: '8 s',
+    source: 'public/assets/videos/sample-ace-paris.webm',
+    fileName: 'sample-ace-paris.webm',
+    license: 'CC0',
+    credit: 'Shev123 / Wikimedia Commons',
+    sourceUrl: 'https://commons.wikimedia.org/wiki/File:Paris_Volley_-_Chaumont,_18_February_2014_-_43_-_Ace.webm',
+    focus: 'Serve para testar processamento com movimento de jogo e acao rapida.',
+  },
+];
+
 const videoMovementMetricMap = [
   {
     fundamental: 'Saque',
@@ -152,7 +195,7 @@ const videoMovementMetricMap = [
     metric: 'Flexao de joelho + eixo do tronco',
     joints: 'quadril, joelho, tornozelo, ombro e tronco',
     sources: 'Sports2D para angulos; Vert Tracker como referencia futura de salto',
-    manualCheck: 'Checar se a atleta cai pronta para a proxima defesa, sem joelho colapsar.',
+    manualCheck: 'Checar se o atleta cai pronto para a proxima defesa, sem joelho colapsar.',
     nextAction: 'Usar primeiro como prevencao e qualidade de queda, nao como nota automatica.',
   },
   {
@@ -172,7 +215,7 @@ const videoMovementMetricMap = [
     metric: 'Maos acima da testa + alinhamento de tronco',
     joints: 'punho, cotovelo, ombro e quadril',
     sources: 'MediaPipe como primeiro teste; Sports2D se o plano estiver limpo',
-    manualCheck: 'Confirmar se a decisao do alvo foi chamada antes do toque.',
+    manualCheck: 'Confirmar se a decisao do alvo foi escolhida antes do toque.',
     nextAction: 'Conectar a metrica com leitura de jogo, nao apenas gesto de braco.',
   },
 ];
@@ -183,7 +226,7 @@ const videoAiProjectCandidates = [
     url: 'github.com/davidpagnon/Sports2D',
     license: 'BSD-3-Clause',
     priority: 'Pilotar agora',
-    scope: 'Angulos 2D, trajetorias e cinematica de uma atleta.',
+    scope: 'Angulos 2D, trajetorias e cinematica de um atleta.',
     volleyballUse: 'Saque, ataque, bloqueio e defesa em clips curtos com camera parada.',
     nextTest: 'Rodar .mot/.csv e comparar punho, cotovelo e joelho contra checagem manual.',
     caution: 'Funciona melhor quando o movimento acontece em um plano claro.',
@@ -301,12 +344,12 @@ const styleGuides = [
   {
     name: 'Tatico',
     focus: 'Leitura individual e tomada de decisao em casa',
-    activities: 'Simulacao de posicao, comandos em voz alta e revisao manual de video',
+    activities: 'Simulacao de posicao, marcas visuais no chao, alvos na parede e revisao manual de video',
     dose: '2 blocos de leitura',
     evidence: 'decisao escolhida e zona de referencia',
     caution: 'Adapte quadra para parede, alvo ou marca no chao.',
     exercise: 'Base defensiva e reacao curta',
-    metric: 'decisao chamada antes do movimento',
+    metric: 'decisao escolhida antes do movimento',
   },
   {
     name: 'Fisico',
@@ -321,38 +364,48 @@ const styleGuides = [
 ];
 
 const sharedServeDefenseFocus = {
-  title: 'Saque e defesa para todos',
-  description: 'Toda posicao precisa pressionar com alvo, defender com criterio e controlar erro antes de buscar forca maxima.',
   items: [
-    'Estrategia de alvo: escolher zona vulneravel antes de executar.',
-    'Pressao: manter intencao mesmo em repeticoes curtas dentro de casa.',
-    'Zonas vulneraveis: simular corredor, fundo centro e bola curta com marcas no chao.',
-    'Controle de erro: contar perdas por serie e ajustar a proxima repeticao.',
+    'Estratégia de alvo: escolher zona vulnerável antes de executar.',
+    'Pressão: manter intenção mesmo em repetições curtas dentro de casa.',
+    'Zonas vulneráveis: simular corredor, fundo centro e bola curta com marcas no chão.',
+    'Controle de erro: contar perdas por série e ajustar a próxima repetição.',
   ],
   exercises: [
     {
       id: 'universal-saque-alvo',
       fundamental: 'Saque',
       title: 'Mapa de alvo do saque na parede',
-      objective: 'Treinar escolha de alvo, pressao e controle do erro sem precisar de quadra.',
+      objective: 'Treinar escolha de alvo, pressão e controle do erro sem precisar de quadra.',
       environment: 'Individual em casa',
       materials: 'Parede livre, fita adesiva e bola leve ou bola de meia.',
       duration: '8 a 10 min',
-      setup: 'Marque tres alvos na parede. Antes de cada repeticao diga o alvo em voz alta e execute com controle, anotando acerto, erro curto ou erro longo.',
-      variations: ['Alternar alvo a cada repeticao', 'Fazer 5 bolas seguidas no mesmo alvo', 'Reduzir forca quando errar duas vezes seguidas'],
-      metric: 'Acertos por alvo e erros evitaveis por serie.',
+      setup: 'Marque três alvos na parede. Siga uma ordem escrita de alvos e execute com controle, anotando acerto, erro curto ou erro longo.',
+      variations: ['Alternar alvo a cada repetição', 'Fazer 5 bolas seguidas no mesmo alvo', 'Reduzir força quando errar duas vezes seguidas'],
+      metric: 'Acertos por alvo e erros evitáveis por série.',
     },
     {
       id: 'universal-defesa-zonas',
       fundamental: 'Defesa',
-      title: 'Defesa curta por zonas no chao',
-      objective: 'Criar leitura de zonas vulneraveis e resposta defensiva curta em pouco espaco.',
+      title: 'Defesa curta por zonas no chão',
+      objective: 'Criar leitura de zonas vulneráveis e resposta defensiva curta em pouco espaço.',
       environment: 'Individual em casa',
-      materials: 'Fita no chao, cronometro e bola de meia.',
+      materials: 'Fita no chão, cronômetro e bola de meia.',
       duration: '6 a 9 min',
-      setup: 'Marque tres zonas pequenas no chao. Chame uma zona em voz alta, desloque em base baixa, toque a marca e volte ao centro.',
-      variations: ['Usar ordem aleatoria', 'Adicionar controle da bola de meia ao voltar', 'Fazer series de 20 segundos'],
-      metric: 'Repeticoes com base baixa, decisao rapida e retorno equilibrado.',
+      setup: 'Marque três zonas pequenas no chão. Siga uma sequência visual de zonas, desloque em base baixa, toque a marca e volte ao centro.',
+      variations: ['Usar ordem aleatória', 'Adicionar controle da bola de meia ao voltar', 'Fazer séries de 20 segundos'],
+      metric: 'Repetições com base baixa, decisão rápida e retorno equilibrado.',
+    },
+    {
+      id: 'universal-ombro-elastico',
+      fundamental: 'Físico',
+      title: 'Rotação externa e Y com elástico',
+      objective: 'Preparar manguito, escápulas e costas para saque, ataque, levantamento e defesa alta sem aumentar impacto.',
+      environment: 'Individual em casa',
+      materials: 'Elástico leve preso com segurança ou segurado nas mãos.',
+      duration: '5 a 7 min',
+      setup: 'Faça rotação externa com cotovelo colado ao corpo e depois elevação em Y com braços estendidos. Movimento lento, ombros longe da orelha e sem dor.',
+      variations: ['Sem elástico, só ativação do gesto', 'Elástico mais leve e mais controle', 'Fazer antes de saque, ataque ou treino de ombro'],
+      metric: '2 séries de 8 a 12 repetições sem dor, sem arquear a lombar e sem elevar os ombros.',
     },
   ],
 };
@@ -361,20 +414,20 @@ const positionContents = [
   {
     id: 'levantador',
     name: 'Levantador',
-    description: 'Treino para organizar o jogo: ler bloqueio, escolher a jogada, manter ritmo e comunicar a decisao com clareza.',
-    fundamentals: ['Leitura do bloqueio', 'Escolha de jogada', 'Ritmo do toque', 'Comunicacao', 'Engano corporal'],
+    description: 'Treino para organizar o jogo: ler bloqueio, escolher a jogada, manter ritmo e entregar a bola com precisão.',
+    fundamentals: ['Leitura do bloqueio', 'Escolha de jogada', 'Ritmo do toque', 'Precisao do toque', 'Engano corporal'],
     homeExercises: [
       {
         id: 'levantador-toque-alvo',
         fundamental: 'Levantamento',
-        title: 'Toque de dedos com chamada de jogada',
-        objective: 'Unir precisao do toque com decisao antes do contato.',
+        title: 'Toque de dedos com alvo alternado',
+        objective: 'Unir precisao do toque com escolha de alvo antes do contato.',
         environment: 'Individual em casa',
         materials: 'Parede, fita para alvo e bola leve.',
         duration: '8 a 12 min',
-        setup: 'Marque dois alvos na parede. Diga "entrada" ou "saida" antes de tocar e envie a bola para o alvo correspondente.',
+        setup: 'Marque dois alvos na parede. Alterne entrada e saida por uma sequência escrita e envie a bola para o alvo correspondente.',
         variations: ['Alternar alvo alto e medio', 'Agachar levemente entre toques', 'Fazer uma finta corporal antes do toque'],
-        metric: 'Acertos no alvo depois da chamada correta.',
+        metric: 'Acertos no alvo correto mantendo pes ajustados antes das maos.',
       },
       {
         id: 'levantador-ritmo-pes',
@@ -385,7 +438,7 @@ const positionContents = [
         materials: 'Fita no chao e cronometro.',
         duration: '6 a 8 min',
         setup: 'Marque centro, esquerda e direita. Desloque, enquadre quadril para o alvo e simule o levantamento com maos altas.',
-        variations: ['Sem bola', 'Com bola leve', 'Com chamada de jogada em voz alta'],
+        variations: ['Sem bola', 'Com bola leve', 'Alternando alvo alto e alvo medio'],
         metric: 'Repeticoes chegando de frente e sem cruzar os pes.',
       },
       {
@@ -408,15 +461,15 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Parede livre, fita para dois alvos e bola leve.',
         duration: '8 a 10 min',
-        setup: 'Marque um alvo a esquerda e outro a direita. Antes da bola chegar, chame "frente" ou "costas" e envie para o alvo correspondente com toque alto.',
-        variations: ['Chamar a direcao em voz alta', 'Alternar passe A, B e C imaginario', 'Fazer uma recuperacao de base antes do toque'],
-        metric: 'Bolas que chegam no alvo certo depois da chamada.',
+        setup: 'Marque um alvo a esquerda e outro a direita. Use uma ordem escrita de frente/costas e envie para o alvo correspondente com toque alto.',
+        variations: ['Alternar alvo por serie', 'Alternar passe A, B e C imaginario', 'Fazer uma recuperacao de base antes do toque'],
+        metric: 'Bolas que chegam no alvo certo depois da escolha planejada.',
       },
       {
         id: 'levantador-bola-ruim-segura',
         fundamental: 'Decisao',
         title: 'Bola ruim para escolha segura',
-        objective: 'Aprender a simplificar a jogada quando o passe tira a levantadora da zona ideal.',
+        objective: 'Aprender a simplificar a jogada quando o passe tira o levantador da zona ideal.',
         environment: 'Individual em casa',
         materials: 'Fita no chao, bola leve e parede opcional.',
         duration: '6 a 8 min',
@@ -425,11 +478,11 @@ const positionContents = [
         metric: 'Decisoes seguras feitas sem cair para tras ou girar o corpo tarde demais.',
       },
     ],
-    gameReading: ['Identificar se o bloqueio esta atrasado, aberto ou adiantado.', 'Escolher jogada pela qualidade do passe e pelo tempo das atacantes imaginadas.', 'Usar voz curta para comunicar ritmo e proxima acao.'],
+    gameReading: ['Identificar se o bloqueio esta atrasado, aberto ou adiantado.', 'Escolher jogada pela qualidade do passe e pelo tempo das atacantes imaginadas.', 'Registrar a escolha e conferir se o gesto combinou com o alvo.'],
     physicalFocus: ['Mobilidade de punho e ombro', 'Base baixa com deslocamento curto', 'Estabilidade de core para tocar equilibrado'],
-    mentalFocus: ['Decidir antes do contato', 'Comunicar sem hesitar', 'Aceitar uma escolha simples quando a bola esta dificil'],
+    mentalFocus: ['Decidir antes do contato', 'Executar o alvo escolhido sem hesitar', 'Aceitar uma escolha simples quando a bola esta dificil'],
     weeklyPlan: [
-      ['Segunda', 'Toque e ritmo', 'Toque de dedos com chamada de jogada.'],
+      ['Segunda', 'Toque e ritmo', 'Toque de dedos com alvo alternado.'],
       ['Terca', 'Fisico curto', 'Core, ombro e deslocamento lateral controlado.'],
       ['Quarta', 'Leitura', 'Simular bloqueio aberto, fechado e atrasado antes do toque.'],
       ['Quinta', 'Engano corporal', 'Olhar para um alvo e finalizar para outro com video curto.'],
@@ -440,21 +493,21 @@ const positionContents = [
   },
   {
     id: 'libero',
-    name: 'Libero',
-    description: 'Treino para sustentar a linha de passe: ler ataque, defender no lugar certo, receber com plataforma firme e liderar a organizacao.',
-    fundamentals: ['Leitura de ataque', 'Posicionamento defensivo', 'Recepcao', 'Lideranca da linha de passe', 'Controle de plataforma'],
+    name: 'Líbero',
+    description: 'Treino para sustentar a linha de passe: ler ataque, defender no lugar certo, receber com plataforma firme e controlar a direcao da bola.',
+    fundamentals: ['Leitura de ataque', 'Posicionamento defensivo', 'Recepcao', 'Levantamento de emergencia', 'Controle de plataforma'],
     homeExercises: [
       {
         id: 'libero-manchete-alvo',
         fundamental: 'Recepcao',
-        title: 'Manchete com alvo e chamada de zona',
-        objective: 'Treinar plataforma e direcao como se estivesse organizando a linha de passe.',
+        title: 'Manchete com alvo e ajuste de zona',
+        objective: 'Treinar plataforma e direcao como se estivesse sustentando a linha de passe.',
         environment: 'Individual em casa',
         materials: 'Parede, fita para alvo e bola leve.',
         duration: '8 a 12 min',
-        setup: 'Marque um alvo na parede. Antes da manchete diga "minha", "curta" ou "fundo" e controle a bola para o alvo.',
+        setup: 'Marque um alvo na parede e duas marcas de base no chao. Alterne a base antes da manchete e controle a bola para o alvo.',
         variations: ['Base parada', 'Um passo lateral antes do contato', 'Alternar alvo baixo e medio'],
-        metric: 'Sequencia maxima com plataforma estavel e alvo correto.',
+        metric: 'Sequencia maxima com plataforma estavel, base ajustada e alvo correto.',
       },
       {
         id: 'libero-defesa-postura',
@@ -464,21 +517,21 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Fita no chao, cronometro e bola de meia.',
         duration: '6 a 10 min',
-        setup: 'Marque tres pontos. Chame uma direcao, toque o ponto em base baixa e recupere o centro.',
-        variations: ['Com comando em voz alta', 'Com bola de meia para controlar no retorno', 'Series de 15 segundos com descanso curto'],
+        setup: 'Marque tres pontos. Siga uma ordem visual de direcoes, toque o ponto em base baixa e recupere o centro.',
+        variations: ['Com ordem escrita de zonas', 'Com bola de meia para controlar no retorno', 'Series de 15 segundos com descanso curto'],
         metric: 'Repeticoes sem perder base baixa.',
       },
       {
-        id: 'libero-lideranca-passe',
-        fundamental: 'Comunicacao',
-        title: 'Comando da linha de passe',
-        objective: 'Treinar lideranca verbal e leitura antes da bola chegar.',
+        id: 'libero-plataforma-curta-funda',
+        fundamental: 'Recepcao',
+        title: 'Plataforma curta e funda',
+        objective: 'Treinar angulo de plataforma para controlar bola curta, media e funda.',
         environment: 'Individual em casa',
-        materials: 'Celular para gravar audio ou video.',
-        duration: '5 a 7 min',
-        setup: 'Simule dez recepcoes. Antes de cada uma, fale zona, prioridade e ajuste: "eu pego curta", "fecha corredor", "bola alta".',
-        variations: ['Gravar e ouvir clareza da voz', 'Fazer com deslocamento curto', 'Adicionar respiracao antes do comando'],
-        metric: 'Comandos curtos, audiveis e ligados a uma decisao.',
+        materials: 'Parede, fita para alvo e tres marcas no chao.',
+        duration: '7 a 9 min',
+        setup: 'Marque curta, media e funda no chao. Receba na parede e ajuste o angulo da plataforma para mandar a bola ao alvo depois de pisar na marca da serie.',
+        variations: ['Series por zona', 'Um passo lateral antes do contato', 'Gravar de lado para ver se a plataforma muda cedo'],
+        metric: 'Bolas no alvo com plataforma ajustada antes do contato.',
       },
       {
         id: 'libero-dig-set-parede',
@@ -500,21 +553,21 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Tres marcas no chao, cronometro e bola de meia.',
         duration: '6 a 8 min',
-        setup: 'Marque curta, meio e fundo. Chame uma zona, de o primeiro passo em base baixa e finalize com plataforma apontada para o alvo.',
-        variations: ['Com comando aleatorio', 'Com bola de meia no final', 'Gravar de lado para ver se o tronco sobe cedo'],
+        setup: 'Marque curta, meio e fundo. Use uma ordem de zonas, de o primeiro passo em base baixa e finalize com plataforma apontada para o alvo.',
+        variations: ['Com ordem alternada de zonas', 'Com bola de meia no final', 'Gravar de lado para ver se o tronco sobe cedo'],
         metric: 'Primeiro passo correto antes de levantar o tronco.',
       },
     ],
     gameReading: ['Ler ombro e passada do atacante.', 'Ajustar um passo antes do contato, nao depois.', 'Organizar mentalmente quem cobre curta, fundo e corredor.'],
     physicalFocus: ['Quadril e tornozelo para base baixa', 'Core anti-rotacao', 'Deslocamento lateral curto'],
-    mentalFocus: ['Coragem para chamar a bola', 'Calma depois de erro de recepcao', 'Atencao ao sinal do atacante'],
+    mentalFocus: ['Coragem para ocupar a bola', 'Calma depois de erro de recepcao', 'Atencao ao sinal do atacante'],
     weeklyPlan: [
-      ['Segunda', 'Recepcao', 'Manchete com alvo e chamada de zona.'],
+      ['Segunda', 'Recepcao', 'Manchete com alvo e ajuste de zona.'],
       ['Terca', 'Defesa', 'Base baixa e reacao curta por zonas.'],
       ['Quarta', 'Fisico', 'Mobilidade de quadril, core e tornozelo.'],
       ['Quinta', 'Leitura', 'Simular ataque forte, largada e bola no corpo.'],
       ['Sexta', 'Saque e defesa', 'Mapa de alvo e controle de erro.'],
-      ['Sabado', 'Lideranca', 'Gravar comandos curtos da linha de passe.'],
+      ['Sabado', 'Plataforma', 'Alternar plataforma curta, media e funda.'],
       ['Domingo', 'Recuperacao', 'Alongamento leve e revisao das anotacoes.'],
     ],
   },
@@ -532,7 +585,7 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Parede livre e fita no chao.',
         duration: '8 a 10 min',
-        setup: 'Marque centro, esquerda e direita. Chame uma direcao, desloque, suba maos e aterrisse equilibrado.',
+        setup: 'Marque centro, esquerda e direita. Siga uma ordem de direcoes, desloque, suba maos e aterrisse equilibrado.',
         variations: ['Sem salto', 'Mini salto', 'Centro-direita-centro em sequencia'],
         metric: 'Aterrissagens estaveis e maos chegando juntas.',
       },
@@ -544,9 +597,9 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Tres marcas no chao.',
         duration: '6 a 9 min',
-        setup: 'Associe cada marca a uma jogada: meio, ponta e saida. Chame a jogada e faca o primeiro passo defensivo ou de bloqueio.',
-        variations: ['Aumentar velocidade aos poucos', 'Falar a pista antes do passo', 'Voltar ao centro sempre equilibrado'],
-        metric: 'Decisao chamada antes do deslocamento.',
+        setup: 'Associe cada marca a uma jogada: meio, ponta e saida. Siga a jogada da sequencia e faca o primeiro passo defensivo ou de bloqueio.',
+        variations: ['Aumentar velocidade aos poucos', 'Usar cartoes com meio, ponta e saida', 'Voltar ao centro sempre equilibrado'],
+        metric: 'Escolha feita antes do deslocamento.',
       },
       {
         id: 'central-transicao',
@@ -557,7 +610,7 @@ const positionContents = [
         materials: 'Fita no chao e toalha pequena.',
         duration: '6 a 8 min',
         setup: 'Simule bloqueio, aterrisse, abra um passo para tras e arme o braco com a toalha como se fosse atacar bola rapida.',
-        variations: ['Sem salto', 'Com mini salto', 'Com chamada "meio" antes da armacao'],
+        variations: ['Sem salto', 'Com mini salto', 'Com foco em armar o braco alto'],
         metric: 'Tempo entre queda e braco armado sem perder equilibrio.',
       },
       {
@@ -568,9 +621,9 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Celular com video de jogo ou highlights e tres marcas no chao.',
         duration: '7 a 9 min',
-        setup: 'Pause o video antes do levantamento, fale a pista observada e pise na marca meio, ponta ou saida antes de simular o bloqueio.',
+        setup: 'Pause o video antes do levantamento, anote a pista observada e pise na marca meio, ponta ou saida antes de simular o bloqueio.',
         variations: ['Assistir em velocidade normal', 'Pausar no passe', 'Registrar acertos de previsao em papel'],
-        metric: 'Previsoes corretas antes da bola sair da mao da levantadora.',
+        metric: 'Previsoes corretas antes da bola sair da mao do levantador.',
       },
       {
         id: 'central-fecha-ponta',
@@ -585,7 +638,7 @@ const positionContents = [
         metric: 'Chegadas com maos paralelas e aterrissagem equilibrada.',
       },
     ],
-    gameReading: ['Ler ombro e maos do levantador.', 'Separar bola rapida de bola alta pela chegada do passe.', 'Voltar do bloqueio pronta para transicao curta.'],
+    gameReading: ['Ler ombro e maos do levantador.', 'Separar bola rapida de bola alta pela chegada do passe.', 'Voltar do bloqueio pronto para transicao curta.'],
     physicalFocus: ['Potencia com aterrissagem segura', 'Deslocamento lateral', 'Ombro e core para alcance acima da cabeca'],
     mentalFocus: ['Paciencia para nao saltar cedo', 'Compromisso com o primeiro passo', 'Reacao rapida depois do bloqueio'],
     weeklyPlan: [
@@ -624,9 +677,9 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Toalha pequena e tres marcas na parede ou no chao.',
         duration: '7 a 10 min',
-        setup: 'Antes da passada diga a opcao: diagonal, paralela ou curta. Finalize o movimento com a toalha apontando para a marca.',
+        setup: 'Antes da passada escolha pela sequencia: diagonal, paralela ou curta. Finalize o movimento com a toalha apontando para a marca.',
         variations: ['Sem salto', 'Mini salto controlado', 'Escolha aleatoria antes da passada'],
-        metric: 'Decisoes chamadas antes do ultimo apoio.',
+        metric: 'Decisoes escolhidas antes do ultimo apoio.',
       },
       {
         id: 'ponteiro-cobertura',
@@ -637,7 +690,7 @@ const positionContents = [
         materials: 'Fita no chao e cronometro.',
         duration: '5 a 8 min',
         setup: 'Marque ponto de ataque e ponto de cobertura. Simule ataque, recue para cobertura e toque o ponto em base baixa.',
-        variations: ['Cobertura curta', 'Cobertura profunda', 'Chamar a zona antes de voltar'],
+        variations: ['Cobertura curta', 'Cobertura profunda', 'Alternar zona antes de voltar'],
         metric: 'Tempo para sair do ataque e chegar na cobertura em postura baixa.',
       },
       {
@@ -649,8 +702,8 @@ const positionContents = [
         materials: 'Fita no chao, toalha pequena e parede opcional.',
         duration: '8 a 10 min',
         setup: 'Marque uma bola ideal e uma bola longe. Alterne a passada, espere a bola imaginaria e escolha diagonal, paralela, largada ou bola mantida.',
-        variations: ['Chamar a escolha antes do ultimo apoio', 'Sem salto', 'Mini salto com queda equilibrada'],
-        metric: 'Escolhas declaradas antes do contato e queda sem invadir a marca.',
+        variations: ['Escolher a solucao antes do ultimo apoio', 'Sem salto', 'Mini salto com queda equilibrada'],
+        metric: 'Escolhas definidas antes do contato e queda sem invadir a marca.',
       },
       {
         id: 'ponteiro-recepcao-linha',
@@ -660,8 +713,8 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Parede, fita para alvo e duas marcas laterais no chao.',
         duration: '8 a 12 min',
-        setup: 'Faca manchete na parede, ajuste um passo para a marca lateral chamada e volte para o centro antes da proxima bola.',
-        variations: ['Direita-esquerda alternado', 'Chamar "minha" antes do contato', 'Reduzir forca e aumentar precisao'],
+        setup: 'Faca manchete na parede, ajuste um passo para a marca lateral da sequencia e volte para o centro antes da proxima bola.',
+        variations: ['Direita-esquerda alternado', 'Ajustar base antes do contato', 'Reduzir forca e aumentar precisao'],
         metric: 'Passes no alvo sem perder a linha de recepcao.',
       },
     ],
@@ -693,7 +746,7 @@ const positionContents = [
         materials: 'Toalha pequena e marcas no chao.',
         duration: '8 a 10 min',
         setup: 'Marque uma passada curta e uma passada atrasada. Alterne as duas e finalize com braco alto, buscando equilibrio antes de potencia.',
-        variations: ['Sem salto', 'Mini salto', 'Chamar "alta", "longe" ou "apertada" antes da passada'],
+        variations: ['Sem salto', 'Mini salto', 'Alternar bola alta, longe ou apertada por serie'],
         metric: 'Repeticoes com braco alto e queda equilibrada em bola dificil.',
       },
       {
@@ -705,7 +758,7 @@ const positionContents = [
         materials: 'Parede, fita para duas marcas e bola leve.',
         duration: '6 a 9 min',
         setup: 'Marque "mao esquerda" e "mao direita" na parede. Toque a bola leve ou simule com a mao buscando a borda do alvo.',
-        variations: ['Alternar bordas', 'Dizer a escolha antes do gesto', 'Reduzir velocidade para melhorar precisao'],
+        variations: ['Alternar bordas', 'Escolher a borda antes do gesto', 'Reduzir velocidade para melhorar precisao'],
         metric: 'Acertos na borda escolhida sem perder controle do corpo.',
       },
       {
@@ -716,7 +769,7 @@ const positionContents = [
         environment: 'Individual em casa',
         materials: 'Tres marcas no chao e parede livre.',
         duration: '7 a 10 min',
-        setup: 'Use uma marca para ponteiro, uma para pipe e uma para centro. Chame a jogada e ajuste maos na parede sem tocar forte.',
+        setup: 'Use uma marca para ponteiro, uma para pipe e uma para centro. Siga uma ordem de jogadas e ajuste maos na parede sem tocar forte.',
         variations: ['Sem salto', 'Mini salto', 'Voltar ao centro depois de cada leitura'],
         metric: 'Decisao correta e maos alinhadas antes da simulacao de bloqueio.',
       },
@@ -724,13 +777,13 @@ const positionContents = [
         id: 'oposto-saida-diagonal-paralela',
         fundamental: 'Ataque',
         title: 'Saida: diagonal ou paralela',
-        objective: 'Criar decisao ofensiva de oposta antes do contato, sem bater forte em casa.',
+        objective: 'Criar decisao ofensiva de oposto antes do contato, sem bater forte em casa.',
         environment: 'Individual em casa',
         materials: 'Toalha pequena, fita no chao e duas marcas na parede.',
         duration: '8 a 10 min',
-        setup: 'Monte uma passada curta de saida. Antes do ultimo apoio chame diagonal ou paralela e finalize com a toalha na direcao da marca.',
+        setup: 'Monte uma passada curta de saida. Antes do ultimo apoio escolha diagonal ou paralela e finalize com a toalha na direcao da marca.',
         variations: ['Sem salto', 'Mini salto', 'Adicionar escolha "explorar" quando a marca estiver bloqueada'],
-        metric: 'Decisoes chamadas antes do ultimo apoio e braco finalizando alto.',
+        metric: 'Decisoes definidas antes do ultimo apoio e braco finalizando alto.',
       },
       {
         id: 'oposto-cobertura-direita',
@@ -741,7 +794,7 @@ const positionContents = [
         materials: 'Tres marcas no chao e cronometro.',
         duration: '6 a 8 min',
         setup: 'Marque ataque na saida, cobertura curta e defesa direita. Simule ataque, toque a cobertura e recupere para defesa em base baixa.',
-        variations: ['Com comando aleatorio', 'Com bola de meia no final', 'Cronometrar 15 segundos de repeticoes limpas'],
+        variations: ['Com ordem alternada de zonas', 'Com bola de meia no final', 'Cronometrar 15 segundos de repeticoes limpas'],
         metric: 'Transicoes completas sem subir demais a postura.',
       },
     ],
@@ -766,12 +819,12 @@ const positionDecisionGuides = [
     shortName: 'MB',
     role: 'Defende o centro da rede, fecha bloqueios nas pontas e ataca bolas rapidas quando o passe permite.',
     courtBase: 'Z3 na rede; em muitos sistemas sai para o libero no fundo.',
-    primaryDecision: 'Ler o levantador adversario cedo sem abandonar a atacante de meio.',
+    primaryDecision: 'Ler o levantador adversario cedo sem abandonar o atacante de meio.',
     priority: 'Tempo de bloqueio, deslocamento curto na rede e transicao rapida para ataque.',
-    avoid: 'Saltar no chute da levantadora antes de enxergar ombro, bola e atacante.',
+    avoid: 'Saltar no chute do levantador antes de enxergar ombro, bola e atacante.',
     keyFundamentals: ['Bloqueio', 'Ataque rapido', 'Transicao', 'Saque tatico'],
-    indicators: ['Toques de bloqueio que viram contra-ataque', 'Ataques de primeiro tempo apos passe bom', 'Fechamento correto com ponta ou oposta', 'Erros de rede ou invasao'],
-    evidence: ['Maos passando a rede sem tocar na fita', 'Primeiro passo lateral curto e limpo', 'Aterrissagem equilibrada depois do bloqueio', 'Chamada de bola rapida antes do levantamento'],
+    indicators: ['Toques de bloqueio que viram contra-ataque', 'Ataques de primeiro tempo apos passe bom', 'Fechamento correto com ponta ou oposto', 'Erros de rede ou invasao'],
+    evidence: ['Maos passando a rede sem tocar na fita', 'Primeiro passo lateral curto e limpo', 'Aterrissagem equilibrada depois do bloqueio', 'Preparacao de bola rapida antes do levantamento'],
     trainingTabs: [
       ['Tecnico', 'Fechar maos e invadir espaco no bloqueio.', 'Passo lateral curto na parede com parada de 2 segundos e maos acima da cabeca.'],
       ['Tatico', 'Escolher entre marcar meio ou ajudar na ponta.', 'Assistir 6 bolas e pausar antes do levantamento para prever a direcao.'],
@@ -784,10 +837,10 @@ const positionDecisionGuides = [
     role: 'Organiza o ataque no segundo toque, ajusta o ritmo do jogo e escolhe a melhor atacante para cada bola.',
     courtBase: 'Busca a zona de levantamento perto da Z2/Z3, mesmo quando recebe fora do alvo.',
     primaryDecision: 'Distribuir a bola pelo melhor equilibrio entre qualidade do passe, bloqueio adversario e atacante disponivel.',
-    priority: 'Precisao de bola alta, velocidade de decisao e comunicacao antes do contato.',
+    priority: 'Precisao de bola alta, velocidade de decisao e corpo equilibrado antes do contato.',
     avoid: 'Forcar uma bola rapida quando o passe tirou a equipe do sistema.',
     keyFundamentals: ['Levantamento', 'Defesa', 'Bloqueio na Z2', 'Saque'],
-    indicators: ['Bolas atacaveis por tipo de passe', 'Distribuicao entre ponta, central e oposta', 'Ataques com bloqueio simples', 'Erros de dois toques ou conducao'],
+    indicators: ['Bolas atacaveis por tipo de passe', 'Distribuicao entre ponta, central e oposto', 'Ataques com bloqueio simples', 'Erros de dois toques ou conducao'],
     evidence: ['Pe chegando antes das maos', 'Bola saindo com altura e distancia combinadas', 'Ombro neutro para esconder a escolha', 'Backup de levantamento quando defende a primeira bola'],
     trainingTabs: [
       ['Tecnico', 'Chegar embaixo da bola antes de levantar.', 'Toque na parede alternando alvo alto e alvo medio, recuperando base a cada contato.'],
@@ -798,14 +851,14 @@ const positionDecisionGuides = [
   {
     id: 'oposto',
     shortName: 'OPP',
-    role: 'Ataca pela saida, oferece bola de seguranca e bloqueia muitas bolas da ponteira adversaria.',
+    role: 'Ataca pela saida, oferece bola de seguranca e bloqueia muitas bolas do ponteiro adversario.',
     courtBase: 'Z2 na rede e opcoes de ataque do fundo conforme sistema da equipe.',
     primaryDecision: 'Ser agressiva na bola boa e inteligente na bola quebrada.',
-    priority: 'Ataque de saida, bloqueio contra ponteira e virada de bola sob pressao.',
+    priority: 'Ataque de saida, bloqueio contra ponteiro e virada de bola sob pressao.',
     avoid: 'Bater forte em toda bola sem observar bloqueio, cobertura e espaco livre.',
     keyFundamentals: ['Ataque', 'Bloqueio', 'Defesa direita', 'Cobertura'],
-    indicators: ['Eficiencia de ataque na saida', 'Bloqueios ou amortecimentos contra ponteira', 'Erros nao forcados em bola alta', 'Pontos em rally longo'],
-    evidence: ['Passada ajustada para bola um pouco fora da antena', 'Mao atacando diagonal ou paralela com intencao', 'Fechamento de bloqueio com a central', 'Recuperacao depois de cobrir largada'],
+    indicators: ['Eficiencia de ataque na saida', 'Bloqueios ou amortecimentos contra ponteiro', 'Erros nao forcados em bola alta', 'Pontos em rally longo'],
+    evidence: ['Passada ajustada para bola um pouco fora da antena', 'Mao atacando diagonal ou paralela com intencao', 'Fechamento de bloqueio com o central', 'Recuperacao depois de cobrir largada'],
     trainingTabs: [
       ['Tecnico', 'Controlar direcao do ataque na saida.', 'Passada com toalha alternando finalizacao em diagonal e paralela imaginaria.'],
       ['Tatico', 'Decidir entre bater, explorar ou colocar.', 'Pausar videos de ataque e nomear a melhor decisao antes do contato.'],
@@ -821,12 +874,12 @@ const positionDecisionGuides = [
     priority: 'Qualidade da recepcao, leitura de ataque e controle emocional em bolas dificeis.',
     avoid: 'Resolver tudo com manchete alta sem direcionar a bola para uma zona util.',
     keyFundamentals: ['Recepcao', 'Defesa', 'Cobertura', 'Levantamento de emergencia'],
-    indicators: ['Passe positivo para zona de levantamento', 'Defesas que mantem rally vivo', 'Bolas cobertas apos bloqueio', 'Erros de comunicacao no fundo'],
-    evidence: ['Plataforma formando angulo antes do contato', 'Base baixa antes do ataque adversario', 'Chamada clara: minha, sua, fora', 'Levantamento de emergencia alto para a ponta'],
+    indicators: ['Passe positivo para zona de levantamento', 'Defesas que mantem rally vivo', 'Bolas cobertas apos bloqueio', 'Erros de posicionamento no fundo'],
+    evidence: ['Plataforma formando angulo antes do contato', 'Base baixa antes do ataque adversario', 'Primeiro passo ajustado a zona da bola', 'Levantamento de emergencia alto para a ponta'],
     trainingTabs: [
       ['Tecnico', 'Plataforma estavel e direcao do passe.', 'Manchete na parede mirando uma fita, contando sequencias de controle.'],
-      ['Tatico', 'Ler largada, diagonal e bola forte.', 'Marcar em video o ombro da atacante e pausar antes do contato para prever a zona.'],
-      ['Fisico', 'Base baixa com deslocamento curto.', 'Tres marcas no chao, comando de direcao e volta ao centro em 20 segundos.'],
+      ['Tatico', 'Ler largada, diagonal e bola forte.', 'Marcar em video o ombro do atacante e pausar antes do contato para prever a zona.'],
+      ['Fisico', 'Base baixa com deslocamento curto.', 'Tres marcas no chao, sequencia de direcoes e volta ao centro em 20 segundos.'],
     ],
   },
   {
@@ -851,15 +904,15 @@ const positionDecisionGuides = [
 const profileQuestionOptions = {
   levels: [
     ['iniciante', 'Iniciante'],
-    ['intermediario', 'Intermediario'],
-    ['avancado', 'Avancado'],
+    ['intermediario', 'Intermediário'],
+    ['avancado', 'Avançado'],
   ],
   equipment: [
     ['bola', 'Bola'],
     ['parede', 'Parede livre'],
-    ['fita', 'Fita no chao'],
+    ['fita', 'Fita no chão'],
     ['toalha', 'Toalha'],
-    ['elastico', 'Elastico'],
+    ['elastico', 'Elástico'],
     ['colchonete', 'Colchonete'],
   ],
   pains: [
@@ -873,13 +926,13 @@ const profileQuestionOptions = {
   objectives: [
     ['fundamentos', 'Melhorar fundamentos'],
     ['saque', 'Saque mais consistente'],
-    ['defesa', 'Defesa e recepcao'],
+    ['defesa', 'Defesa e recepção'],
     ['ataque', 'Ataque com controle'],
-    ['fisico', 'Forca e mobilidade'],
+    ['fisico', 'Força e mobilidade'],
     ['leitura', 'Leitura de jogo'],
   ],
   time: [
-    ['15', 'Ate 15 min'],
+    ['15', 'Até 15 min'],
     ['25', '20 a 30 min'],
     ['40', '30 a 45 min'],
     ['60', '45 min ou mais'],
@@ -929,7 +982,7 @@ const correctionPlaybook = [
     observed: 'deslocamento curto em casa',
     metric: '3 series de 20 segundos sem perder postura.',
     drill: 'Base defensiva e reacao curta',
-    next: 'Usar comando em voz alta e voltar ao centro a cada toque.',
+    next: 'Usar uma sequencia escrita de zonas e voltar ao centro a cada toque.',
   },
 ];
 
@@ -1002,8 +1055,8 @@ const exerciseLibrary = [
     environment: 'Individual em casa',
     materials: 'Fita no chao, bola de meia ou objeto leve e cronometro.',
     duration: '6 a 10 min',
-    setup: 'Marque tres pontos no chao. Saia da base defensiva, toque o ponto chamado por voce mesmo e volte ao centro mantendo postura baixa.',
-    variations: ['Usar comandos em voz alta', 'Adicionar bola de meia para controlar apos o deslocamento', 'Fazer series de 20 segundos'],
+    setup: 'Marque tres pontos no chao. Saia da base defensiva, toque o ponto da sequencia e volte ao centro mantendo postura baixa.',
+    variations: ['Usar sequencia escrita de zonas', 'Adicionar bola de meia para controlar apos o deslocamento', 'Fazer series de 20 segundos'],
     metric: 'Repeticoes com postura baixa e tempo sem perder equilibrio.',
   },
 ];
@@ -1011,48 +1064,48 @@ const exerciseLibrary = [
 const physicalTrainingLibrary = [
   {
     id: 'fis-potencia-salto',
-    focus: 'Potencia de salto',
+    focus: 'Potência de salto',
     title: 'Saltos verticais com aterrissagem travada',
-    objective: 'Melhorar impulsao para ataque e bloqueio mantendo joelho, quadril e tronco alinhados na queda.',
+    objective: 'Melhorar impulsão para ataque e bloqueio mantendo joelho, quadril e tronco alinhados na queda.',
     athletes: '1 a 6 atletas',
-    materials: 'Fita no chao, cone baixo ou caixa baixa opcional.',
+    materials: 'Fita no chão, cone baixo ou caixa baixa opcional.',
     duration: '10 a 12 min',
-    setup: 'Marque uma zona de queda. Execute 3 a 5 saltos por serie, buscando subir rapido e aterrissar silencioso por 2 segundos.',
-    mobility: 'Antes: tornozelo joelho-na-parede, agachamento profundo assistido e balanco de bracos.',
-    variations: ['Salto sem contramovimento', 'Salto com aproximacao curta de ataque', 'Salto lateral baixo antes do salto vertical'],
-    metric: 'Altura percebida, aterrissagens estaveis e queda silenciosa em cada repeticao.',
-    rest: '90 a 150 s entre series; pare antes da altura cair muito.',
-    evidence: 'Pliometria melhora salto vertical em atletas de volei; o descanso precisa preservar potencia, nao cansar por cansar.',
+    setup: 'Marque uma zona de queda. Execute 3 a 5 saltos por série, buscando subir rápido e aterrissar silencioso por 2 segundos.',
+    mobility: 'Antes: tornozelo joelho-na-parede, agachamento profundo assistido e balanço de braços.',
+    variations: ['Salto sem contramovimento', 'Salto com aproximação curta de ataque', 'Salto lateral baixo antes do salto vertical'],
+    metric: 'Altura percebida, aterrissagens estáveis e queda silenciosa em cada repetição.',
+    rest: '90 a 150 s entre séries; pare antes da altura cair muito.',
+    evidence: 'Pliometria melhora salto vertical em atletas de vôlei; o descanso precisa preservar potência, não cansar por cansar.',
   },
   {
     id: 'fis-aterrissagem-desaceleracao',
-    focus: 'Aterrissagem e desaceleracao',
+    focus: 'Aterrissagem e desaceleração',
     title: 'Queda controlada e freio lateral',
     objective: 'Reduzir perda de eixo depois de bloqueio, ataque ou defesa curta.',
     athletes: '1 a 8 atletas',
-    materials: 'Fita no chao, cones e espaco de 3 a 5 metros.',
+    materials: 'Fita no chão, cones e espaço de 3 a 5 metros.',
     duration: '8 a 10 min',
-    setup: 'Faca um deslocamento lateral curto, freie dentro da marca e segure a base por 2 segundos antes de voltar.',
-    mobility: 'Antes: mobilidade de tornozelo, 90/90 de quadril e rotacao toracica em base baixa.',
-    variations: ['Freio bilateral', 'Freio em uma perna com baixa altura', 'Comando visual para mudar direita/esquerda'],
-    metric: 'Numero de freios sem joelho cair para dentro e sem perder equilibrio.',
-    rest: '45 a 75 s entre series curtas.',
-    evidence: 'Aquecimentos com core, equilibrio e controle de tronco podem reduzir severidade e carga de lesoes por sobreuso.',
+    setup: 'Faça um deslocamento lateral curto, freie dentro da marca e segure a base por 2 segundos antes de voltar.',
+    mobility: 'Antes: mobilidade de tornozelo, 90/90 de quadril e rotação torácica em base baixa.',
+    variations: ['Freio bilateral', 'Freio em uma perna com baixa altura', 'Sinal visual para mudar direita/esquerda'],
+    metric: 'Número de freios sem joelho cair para dentro e sem perder equilíbrio.',
+    rest: '45 a 75 s entre séries curtas.',
+    evidence: 'Aquecimentos com core, equilíbrio e controle de tronco podem reduzir severidade e carga de lesões por sobreuso.',
   },
   {
     id: 'fis-forca-unilateral',
-    focus: 'Forca unilateral',
+    focus: 'Força unilateral',
     title: 'Agachamento dividido para base de ataque',
-    objective: 'Construir perna forte para passada, bloqueio, defesa baixa e recuperacao entre saltos.',
+    objective: 'Construir perna forte para passada, bloqueio, defesa baixa e recuperação entre saltos.',
     athletes: '1 a 6 atletas',
     materials: 'Peso corporal, mochila ou halter quando houver tecnica segura.',
     duration: '12 a 16 min',
-    setup: 'Fique em passada, desca controlando o joelho da frente e suba empurrando o chao sem perder alinhamento.',
-    mobility: 'Antes: flexor de quadril dinamico, tornozelo e ponte de gluteo curta.',
+    setup: 'Fique em passada, desça controlando o joelho da frente e suba empurrando o chão sem perder alinhamento.',
+    mobility: 'Antes: flexor de quadril dinâmico, tornozelo e ponte de glúteo curta.',
     variations: ['Sem carga', 'Com mochila no peito', 'Pe traseiro elevado somente quando houver controle'],
-    metric: 'Repeticoes por lado com joelho alinhado, tronco estavel e mesma amplitude.',
-    rest: '90 a 150 s entre series; use mais descanso quando a carga subir.',
-    evidence: 'Diretrizes de resistencia indicam forca com cargas mais altas e 2 a 3 series; em casa, peso corporal e elasticos tambem servem.',
+    metric: 'Repetições por lado com joelho alinhado, tronco estável e mesma amplitude.',
+    rest: '90 a 150 s entre séries; use mais descanso quando a carga subir.',
+    evidence: 'Diretrizes de resistência indicam força com cargas mais altas e 2 a 3 séries; em casa, peso corporal e elásticos também servem.',
   },
   {
     id: 'fis-agilidade-curta',
@@ -1060,46 +1113,93 @@ const physicalTrainingLibrary = [
     title: 'Shuffle, freio e volta ao centro',
     objective: 'Melhorar deslocamento curto para defesa, cobertura e ajuste antes da bola chegar.',
     athletes: '1 a 10 atletas',
-    materials: 'Tres marcas no chao e cronometro.',
+    materials: 'Três marcas no chão e cronômetro.',
     duration: '8 a 12 min',
-    setup: 'Marque centro, direita e esquerda. Saia do centro, toque a marca chamada, freie e volte mantendo base baixa.',
-    mobility: 'Antes: deslocamento lateral leve, abertura de quadril e ativacao de panturrilha.',
-    variations: ['Com comando de voz', 'Com comando visual', 'Com bola leve apos o freio'],
-    metric: 'Repeticoes limpas em 15 a 20 s sem subir demais a postura.',
+    setup: 'Marque centro, direita e esquerda. Saia do centro, toque a marca da sequencia, freie e volte mantendo base baixa.',
+    mobility: 'Antes: deslocamento lateral leve, abertura de quadril e ativação de panturrilha.',
+    variations: ['Com sequencia escrita', 'Com sinal visual', 'Com bola leve apos o freio'],
+    metric: 'Repetições limpas em 15 a 20 s sem subir demais a postura.',
     rest: '60 a 90 s entre tiros para manter velocidade real.',
-    evidence: 'Preparacao fisica de volei costuma combinar agilidade intensa com movimentos parecidos com o ritmo do jogo.',
+    evidence: 'Preparação física de vôlei costuma combinar agilidade intensa com movimentos parecidos com o ritmo do jogo.',
   },
   {
     id: 'fis-core-ombro',
     focus: 'Core e ombro',
-    title: 'Prancha lateral com rotacao e ombro ativo',
+    title: 'Prancha lateral com rotação e ombro ativo',
     objective: 'Dar estabilidade para saque, ataque, defesa baixa e aterrissagem sem perder linha do tronco.',
     athletes: '1 a 8 atletas',
     materials: 'Colchonete e elastico leve opcional.',
     duration: '8 a 10 min',
     setup: 'Segure prancha lateral curta, rode o tronco com controle e mantenha ombro longe da orelha.',
-    mobility: 'Antes: rotacao toracica, wall slide e rotacao externa leve com elastico.',
-    variations: ['Joelho apoiado', 'Prancha lateral completa', 'Rotacao externa com elastico apos a prancha'],
-    metric: 'Tempo com tronco alinhado e ombro estavel, sem compensar lombar.',
-    rest: '30 a 60 s entre lados ou series.',
-    evidence: 'Programas de aquecimento de volei incluem core, membros inferiores e ombro; estudos do VolleyVeilig apontam reducao de lesoes agudas e de membro superior.',
+    mobility: 'Antes: rotação torácica, wall slide e rotação externa leve com elástico.',
+    variations: ['Joelho apoiado', 'Prancha lateral completa', 'Rotação externa com elástico após a prancha'],
+    metric: 'Tempo com tronco alinhado e ombro estável, sem compensar lombar.',
+    rest: '30 a 60 s entre lados ou séries.',
+    evidence: 'Programas de aquecimento de vôlei incluem core, membros inferiores e ombro; estudos do VolleyVeilig apontam redução de lesões agudas e de membro superior.',
+  },
+  {
+    id: 'fis-ombro-elastico-escapula',
+    focus: 'Ombro e escápula',
+    title: 'Rotação externa + Y com elástico',
+    objective: 'Fortalecer manguito rotador e escápulas para reduzir sobrecarga em saque, ataque, levantamento e defesa alta.',
+    athletes: '1 a 8 atletas',
+    materials: 'Elástico leve e parede opcional.',
+    duration: '6 a 9 min',
+    setup: 'Faça rotação externa com cotovelo junto ao corpo, depois elevação em Y com braços estendidos. A força deve vir do ombro estável, não da lombar.',
+    mobility: 'Antes: wall slide, círculos leves de ombro e respiração com costelas baixas.',
+    variations: ['Sem elástico para aprender o caminho', 'Elástico leve com pausa de 1 segundo', 'Y deitado no chão quando não houver elástico'],
+    metric: '8 a 12 repetições limpas por série, ombros longe da orelha e sem dor.',
+    rest: '30 a 60 s entre séries; qualidade vale mais que carga.',
+    evidence: 'Programas de prevenção para vôlei incluem rotação externa, exercícios em Y e controle escapular para estabilidade do ombro.',
+  },
+  {
+    id: 'fis-tornozelo-panturrilha',
+    focus: 'Tornozelo e panturrilha',
+    title: 'Elevação unilateral de panturrilha com equilíbrio',
+    objective: 'Melhorar controle de tornozelo para recepção, defesa, deslocamento lateral e aterrissagem após salto.',
+    athletes: '1 a 10 atletas',
+    materials: 'Parede para apoio leve e marca no chão.',
+    duration: '6 a 8 min',
+    setup: 'Fique em uma perna, suba na ponta do pé, pause no alto e desça devagar. Use a parede apenas para não perder alinhamento.',
+    mobility: 'Antes: joelho na parede e saltitos baixos no lugar.',
+    variations: ['Duas pernas para iniciantes', 'Uma perna com pausa no topo', 'Adicionar alcance lateral curto com a mão livre'],
+    metric: '8 a 15 repetições por lado sem virar o tornozelo para fora e sem cair para a parede.',
+    rest: '30 a 60 s entre lados.',
+    evidence: 'Treino de panturrilha, equilíbrio e salto baixo ajuda a preparar tornozelo para mudanças de direção e aterrissagens.',
+  },
+  {
+    id: 'fis-salto-lateral-controlado',
+    focus: 'Pliometria lateral',
+    title: 'Saltos laterais baixos com pouso silencioso',
+    objective: 'Treinar força lateral e freio para bloqueio, cobertura, defesa e retomada de base sem excesso de volume.',
+    athletes: '1 a 8 atletas',
+    materials: 'Fita no chão e superfície segura.',
+    duration: '6 a 8 min',
+    setup: 'Salte de uma marca para outra com pouca altura, aterrisse flexionando joelho e quadril, segure 2 segundos e só então volte.',
+    mobility: 'Antes: abertura de quadril, tornozelo e dois freios laterais sem salto.',
+    variations: ['Passo lateral sem salto', 'Salto bilateral baixo', 'Salto unilateral só quando o pouso estiver estável'],
+    metric: '6 a 10 pousos por lado com joelho alinhado e queda silenciosa.',
+    rest: '60 a 90 s; pare quando o pouso ficar barulhento ou desalinhado.',
+    evidence: 'Pliometria melhora salto, agilidade e potência no vôlei quando o volume é baixo e a aterrissagem é bem controlada.',
   },
 ];
 
 const mobilityPrep = [
   ['Tornozelo', 'Joelho na parede + saltitos leves', '2 x 30 s por lado', 'Ajuda aterrissagem, defesa baixa e deslocamento sem compensar no joelho.'],
-  ['Quadril', '90/90 dinamico + avanco com rotacao', '2 x 5 repeticoes por lado', 'Prepara base baixa, passada de ataque e mudanca de direcao.'],
-  ['Tronco', 'Rotacao toracica em quatro apoios', '2 x 6 repeticoes por lado', 'Ajuda saque e ataque a girar sem jogar toda carga no ombro.'],
-  ['Ombro', 'Wall slide + rotacao externa com elastico', '2 x 8 repeticoes', 'Prepara membros superiores para saque, ataque, bloqueio e defesa alta.'],
+  ['Quadril', '90/90 dinâmico + avanço com rotação', '2 x 5 repetições por lado', 'Prepara base baixa, passada de ataque e mudança de direção.'],
+  ['Tronco', 'Rotação torácica em quatro apoios', '2 x 6 repetições por lado', 'Ajuda saque e ataque a girar sem jogar toda carga no ombro.'],
+  ['Ombro', 'Wall slide + rotação externa com elástico', '2 x 8 repetições', 'Prepara membros superiores para saque, ataque, bloqueio e defesa alta.'],
+  ['Escápula', 'Y no chão + puxada leve com elástico', '2 x 8 repetições', 'Ajuda ombro a ficar estável antes de sacar, atacar, bloquear ou levantar.'],
+  ['Panturrilha', 'Elevação unilateral + equilíbrio', '2 x 8 por lado', 'Prepara tornozelo e tendão de Aquiles para saltos e mudanças de direção.'],
 ];
 
 const gameReadingPatterns = [
-  ['Levantador', 'Onde ele esta, se chega equilibrado e se pode jogar de segunda.'],
-  ['Trajetoria da bola', 'Altura, velocidade e distancia da rede indicam tempo de ataque.'],
-  ['Postura do atacante', 'Ombro, passada e braco armado mostram direcao provavel.'],
+  ['Levantador', 'Onde ele está, se chega equilibrado e se pode jogar de segunda.'],
+  ['Trajetória da bola', 'Altura, velocidade e distância da rede indicam tempo de ataque.'],
+  ['Postura do atacante', 'Ombro, passada e braço armado mostram direção provável.'],
   ['Cobertura', 'Quem protege a bola curta depois do bloqueio ou ataque.'],
-  ['Bloqueio adversario', 'Maos fechadas, atraso ou espaco entre bloqueadoras.'],
-  ['Espaco vazio', 'Zona descoberta para defender, largar ou contra-atacar.'],
+  ['Bloqueio adversário', 'Mãos fechadas, atraso ou espaço entre bloqueadoras.'],
+  ['Espaço vazio', 'Zona descoberta para defender, largar ou contra-atacar.'],
 ];
 
 const gameReadingScenes = [
@@ -1107,9 +1207,9 @@ const gameReadingScenes = [
     id: 'leitura-levantador-frente',
     clip: 'Cena 01',
     title: 'Levantador chega de frente para a ponta',
-    image: '/assets/game-reading-setter-front.png',
-    imageAlt: 'Levantadora equilibrada perto da rede preparando bola para atacante de entrada.',
-    angle: 'camera lateral perto da rede',
+    image: 'public/assets/game-reading-setter-front-game.png',
+    imageAlt: 'Cena de jogo com levantador perto da rede preparando bola para atacante de entrada.',
+    angle: 'visao de jogo perto da rede',
     fundamental: 'levantamento e distribuicao',
     question: 'Qual ataque parece mais provavel?',
     answer: 'Ataque pela entrada',
@@ -1122,35 +1222,35 @@ const gameReadingScenes = [
     id: 'leitura-bola-afastada',
     clip: 'Cena 02',
     title: 'Passe afasta o levantador da rede',
-    image: '/assets/game-reading-pass-off-net.png',
-    imageAlt: 'Rally visto em plano aberto com bola alta e equipe reorganizando a defesa.',
-    angle: 'visao alta de fundo',
+    image: 'public/assets/game-reading-pass-off-net-game.png',
+    imageAlt: 'Cena de jogo com passe afastado da rede e equipe reorganizando a defesa.',
+    angle: 'visao alta de jogo',
     fundamental: 'passe fora do sistema',
     question: 'Para onde voce defenderia primeiro?',
     answer: 'Bola alta na ponta',
     options: ['Bola rapida no meio', 'Bola alta na ponta', 'Bola de segunda'],
     cues: ['levantador fora da rede', 'central sem tempo de ataque', 'ponta esperando bola alta'],
-    decision: 'Defesa ganha tempo, abre base e observa direcao do ombro da atacante.',
+    decision: 'Defesa ganha tempo, abre base e observa direcao do ombro do atacante.',
     court: ['Bola longe da rede', 'Meio atrasado', 'Ponta com mais tempo'],
   },
   {
     id: 'leitura-bloqueio-aberto',
     clip: 'Cena 03',
     title: 'Bloqueio adversario deixa corredor',
-    image: '/assets/game-reading-open-line.png',
-    imageAlt: 'Ataque de entrada contra bloqueio com defensora lendo o corredor de paralela.',
-    angle: 'visao da defesa para a rede',
+    image: 'public/assets/game-reading-open-line-game.png',
+    imageAlt: 'Cena de jogo com ataque de entrada contra bloqueio e corredor de paralela aberto.',
+    angle: 'camera da defesa no jogo',
     fundamental: 'bloqueio e cobertura',
     question: 'Qual espaco vazio deve ser protegido?',
     answer: 'Corredor paralela',
     options: ['Fundo centro', 'Corredor paralela', 'Bola curta no meio'],
     cues: ['bloqueio nao fecha a antena', 'defesa adversaria afundada', 'atacante com braco alto'],
-    decision: 'Defensora da paralela ajusta meio passo e cobertura acompanha rebote.',
+    decision: 'Defensor da paralela ajusta meio passo e cobertura acompanha rebote.',
     court: ['Bloqueio aberto', 'Paralela vazia', 'Cobertura perto da rede'],
   },
 ];
 
-const storageVersion = 'position-personalization-v1';
+const storageVersion = 'onboarding-combined-profile-v1';
 if (localStorage.getItem('isa.version') !== storageVersion) {
   [
     'isa.profile',
@@ -1174,10 +1274,11 @@ if (localStorage.getItem('isa.version') !== storageVersion) {
 const requestedParams = new URLSearchParams(window.location.search);
 const requestedPage = requestedParams.get('page');
 const requestedPosition = requestedParams.get('position');
-let activePage = navItems.some(([id]) => id === requestedPage)
+const visiblePageItems = pageItems.filter(([id]) => id !== 'posicoes');
+let activePage = visiblePageItems.some(([id]) => id === requestedPage)
   ? requestedPage
   : localStorage.getItem('isa.activePage') || 'dashboard';
-if (!navItems.some(([id]) => id === activePage)) {
+if (activePage === 'posicoes' || !visiblePageItems.some(([id]) => id === activePage)) {
   activePage = 'dashboard';
   localStorage.setItem('isa.activePage', activePage);
 } else if (requestedPage === activePage) {
@@ -1195,7 +1296,11 @@ if (requestedPosition === selectedPositionId) {
   localStorage.setItem('isa.selectedPosition', selectedPositionId);
 }
 let selectedFundamental = localStorage.getItem('isa.selectedFundamental') || 'Todos';
+let selectedExerciseTime = localStorage.getItem('isa.exerciseTime') || 'Todos';
+let selectedExerciseDifficulty = localStorage.getItem('isa.exerciseDifficulty') || 'Todos';
+let selectedExerciseMaterial = localStorage.getItem('isa.exerciseMaterial') || 'Todos';
 let selectedSessionId = localStorage.getItem('isa.selectedSessionId') || '';
+let selectedTrainingDay = Number(localStorage.getItem('isa.selectedTrainingDay') || 'NaN');
 let reportNote = localStorage.getItem('isa.reportNote') || '';
 let reportPositive = localStorage.getItem('isa.reportPositive') || '';
 let reportCorrection = localStorage.getItem('isa.reportCorrection') || '';
@@ -1205,11 +1310,13 @@ let reportEvidence = localStorage.getItem('isa.reportEvidence') || '';
 let reportNext = localStorage.getItem('isa.reportNext') || '';
 let selectedReadingSceneId = localStorage.getItem('isa.selectedReadingSceneId') || gameReadingScenes[0]?.id || '';
 let selectedReadingAnswer = localStorage.getItem('isa.selectedReadingAnswer') || '';
+let selectedVideoExerciseId = localStorage.getItem('isa.selectedVideoExerciseId') || '';
 let editingProfile = false;
 let profileQuestionStep = Number(localStorage.getItem('isa.profileStep') || '0');
 let profileDraft = null;
+let onboardingPositionWarning = false;
 
-const profileQuestionSteps = ['position', 'body', 'level', 'equipment', 'pains', 'objective', 'time'];
+const profileQuestionSteps = ['body', 'level', 'equipment', 'pains', 'objective', 'time'];
 
 const emptySession = {
   id: 'empty',
@@ -1223,6 +1330,160 @@ const emptySession = {
   load: 'Baixa',
   notes: 'Seus indicadores comecam zerados. Registre seu primeiro treino para acompanhar exercicios, correcoes e evolucao.',
 };
+
+function parseStoredTrainings() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(completedTrainingStorageKey) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function readCompletedTrainingSessions() {
+  return parseStoredTrainings()
+    .filter((item) => item && typeof item === 'object' && item.id && item.completedAt)
+    .map((item) => ({
+      ...item,
+      style: item.style || item.type || 'Tecnico',
+      duration: Number(item.duration || item.durationMinutes || 0),
+      durationLabel: item.durationLabel || `${Number(item.duration || item.durationMinutes || 0)} min`,
+      quality: Number.isFinite(Number(item.quality)) ? Number(item.quality) : 8,
+      load: item.load || 'Concluído',
+      exercises: Array.isArray(item.exercises) ? item.exercises : [],
+    }))
+    .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)));
+}
+
+function saveCompletedTrainingSessions(nextSessions) {
+  sessions = [...nextSessions].sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)));
+  localStorage.setItem(completedTrainingStorageKey, JSON.stringify(sessions));
+}
+
+function trainingCompletionKey(dateKey, positionId, day, type) {
+  return [dateKey, positionId || 'sem-posicao', normalizeText(day), normalizeText(type)].join('|');
+}
+
+function completedTrainingForDaily(dailyTraining, dateKey = localDateKey()) {
+  const positionId = selectedPositionId || athleteProfile.position || 'sem-posicao';
+  const key = trainingCompletionKey(dateKey, positionId, dailyTraining.day, dailyTraining.type);
+  return sessions.find((session) => session.completionKey === key) || null;
+}
+
+function trainingDurationMinutes(value) {
+  const match = String(value || '').match(/\d+/);
+  return match ? Number(match[0]) : Number(athleteProfile.time || 25);
+}
+
+function mainTrainingSteps(dailyTraining) {
+  return dailyTraining.steps.filter((step) => normalizeText(step.label).startsWith('exercicio'));
+}
+
+function completedTrainingQuality(dailyTraining) {
+  const mainCount = mainTrainingSteps(dailyTraining).length;
+  return Math.min(10, 7 + mainCount * 0.35);
+}
+
+function buildCompletedTrainingRecord(dailyTraining, completedAt = new Date()) {
+  const currentPosition = getSelectedPosition();
+  const dateKey = localDateKey(completedAt);
+  const positionId = currentPosition?.id || selectedPositionId || athleteProfile.position || 'sem-posicao';
+  const mainSteps = mainTrainingSteps(dailyTraining);
+  return {
+    id: `treino-${dateKey}-${positionId}-${normalizeText(dailyTraining.day)}-${normalizeText(dailyTraining.type)}`,
+    completionKey: trainingCompletionKey(dateKey, positionId, dailyTraining.day, dailyTraining.type),
+    completedAt: completedAt.toISOString(),
+    dateKey,
+    date: formatDateBr(completedAt),
+    time: formatTimeBr(completedAt),
+    weekday: formatWeekdayBr(completedAt),
+    title: `${ptText(displayLabel(dailyTraining.day))}: ${ptText(displayLabel(dailyTraining.focus))}`,
+    positionId,
+    position: currentPosition?.name || displayLabel(positionId),
+    style: dailyTraining.type || 'Tecnico',
+    type: dailyTraining.type || 'Tecnico',
+    focus: dailyTraining.focus,
+    duration: trainingDurationMinutes(dailyTraining.duration),
+    durationLabel: dailyTraining.duration || `${trainingDurationMinutes(dailyTraining.duration)} min`,
+    quality: completedTrainingQuality(dailyTraining),
+    load: 'Concluído',
+    exercises: mainSteps.map((step) => ({
+      title: step.title,
+      fundamental: step.fundamental,
+      duration: step.duration,
+      series: step.series,
+      criterion: step.metric,
+    })),
+  };
+}
+
+function completeDailyTraining(dailyTraining) {
+  const record = buildCompletedTrainingRecord(dailyTraining);
+  if (sessions.some((session) => session.completionKey === record.completionKey)) return false;
+  saveCompletedTrainingSessions([record, ...sessions]);
+  return true;
+}
+
+function deleteCompletedTraining(sessionId) {
+  const nextSessions = sessions.filter((session) => session.id !== sessionId);
+  if (nextSessions.length === sessions.length) return false;
+  saveCompletedTrainingSessions(nextSessions);
+  return true;
+}
+
+function completedTrainingProgressPercent() {
+  return Math.min(100, sessions.length * 14);
+}
+
+function scoreForTrainingCount(count) {
+  return Math.min(10, count ? 5.5 + count * 0.9 : 0);
+}
+
+function sessionMatchesFundamental(session, fundamentalName) {
+  const target = normalizeText(fundamentalName);
+  const targetWords = target.split(/\s+/).filter((word) => word.length > 4);
+  return (session.exercises || []).some((exercise) => {
+    const text = normalizeText(`${exercise.fundamental} ${exercise.title}`);
+    return text.includes(target) || targetWords.some((word) => text.includes(word));
+  });
+}
+
+function scoreForFundamentalName(fundamentalName) {
+  const directCount = sessions.filter((session) => sessionMatchesFundamental(session, fundamentalName)).length;
+  const count = directCount || sessions.length;
+  return scoreForTrainingCount(count);
+}
+
+function completedTrainingHistoryMarkup(limit = 6) {
+  const history = sessions.slice(0, limit);
+  if (!history.length) {
+    return `
+      <article class="note-box training-history-empty">
+        <p><strong style="color:white">Nenhum treino concluído ainda</strong></p>
+        <p>Quando você finalizar uma ficha, ela aparece aqui com data, horário, posição, tipo, duração e exercícios.</p>
+      </article>
+    `;
+  }
+  return `
+    <div class="training-history-list">
+      ${history.map((session) => `
+        <article class="training-history-row">
+          <div>
+            <span class="metric-label">${ptText(session.date)} · ${ptText(session.time)}</span>
+            <h4>${ptText(session.title)}</h4>
+            <p>${ptText(session.position)} · ${ptText(displayLabel(session.type))} · ${session.durationLabel} · ${exerciseCountLabel((session.exercises || []).length)}</p>
+          </div>
+          <div class="training-history-actions">
+            <span class="badge">${ptText(session.load)}</span>
+            <button class="btn-ghost danger-action training-delete-button" type="button" data-delete-training="${session.id}" aria-label="Excluir ${ptText(session.title)}">
+              Excluir
+            </button>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
 
 const app = document.querySelector('#app');
 
@@ -1296,32 +1557,84 @@ function getPositionExerciseFundamentals(position = getSelectedPosition()) {
   return [...new Set(exercises.map((exercise) => exercise.fundamental))];
 }
 
+function getVideoAnalysisExercises(position = getSelectedPosition()) {
+  const allowedFundamentals = new Set(videoMotionPhases.map((item) => item.fundamental));
+  const candidates = [
+    ...exerciseLibrary,
+    ...(position?.homeExercises || []),
+    ...sharedServeDefenseFocus.exercises,
+  ].filter((exercise) => allowedFundamentals.has(exercise.fundamental));
+  const unique = new Map();
+  candidates.forEach((exercise) => {
+    const id = exercise.id || `${exercise.fundamental}-${exercise.title}`;
+    if (!unique.has(id)) unique.set(id, { ...exercise, id });
+  });
+  return [...unique.values()];
+}
+
+function findVideoAnalysisExercise(exerciseId, position = getSelectedPosition()) {
+  const exercises = getVideoAnalysisExercises(position);
+  return exercises.find((exercise) => exercise.id === exerciseId) || exercises[0] || null;
+}
+
+function findExerciseForVideoSample(sample, position = getSelectedPosition()) {
+  const exercises = getVideoAnalysisExercises(position);
+  return exercises.find((exercise) => exercise.id === selectedVideoExerciseId && exercise.fundamental === sample.fundamental)
+    || exercises.find((exercise) => exercise.fundamental === sample.fundamental)
+    || exercises[0]
+    || null;
+}
+
+function findVideoSampleClip(sampleId) {
+  return videoSampleClips.find((sample) => sample.id === sampleId) || null;
+}
+
 function getPositionVideoMarkers(position = getSelectedPosition()) {
   if (!position) {
     return [
-      ['Saque', 'Lancamento, braco alto, contato e equilibrio final'],
-      ['Recepcao', 'Base baixa, plataforma, angulo dos bracos e direcao'],
-      ['Ataque', 'Ritmo da passada, armacao do braco, contato e aterrissagem'],
-      ['Bloqueio', 'Passo lateral, fechamento das maos e queda equilibrada'],
-      ['Defesa', 'Postura baixa, leitura, deslocamento curto e recuperacao'],
+      ['Saque', 'Lançamento, braço alto, contato e equilíbrio final'],
+      ['Recepção', 'Base baixa, plataforma, ângulo dos braços e direção'],
+      ['Ataque', 'Ritmo da passada, armação do braço, contato e aterrissagem'],
+      ['Bloqueio', 'Passo lateral, fechamento das mãos e queda equilibrada'],
+      ['Defesa', 'Postura baixa, leitura, deslocamento curto e recuperação'],
     ];
   }
   return position.fundamentals.map((fundamental, index) => [
     fundamental,
-    position.gameReading[index % position.gameReading.length] || 'Marque o momento chave e a proxima correcao.',
+    position.gameReading[index % position.gameReading.length] || 'Marque o momento-chave e a próxima correção.',
   ]);
 }
 
 function getPositionPhysicalTraining(position = getSelectedPosition()) {
   const idsByPosition = {
-    levantador: ['fis-core-ombro', 'fis-agilidade-curta', 'fis-forca-unilateral'],
-    libero: ['fis-agilidade-curta', 'fis-aterrissagem-desaceleracao', 'fis-core-ombro'],
-    central: ['fis-potencia-salto', 'fis-aterrissagem-desaceleracao', 'fis-agilidade-curta'],
-    ponteiro: ['fis-core-ombro', 'fis-aterrissagem-desaceleracao', 'fis-agilidade-curta'],
-    oposto: ['fis-potencia-salto', 'fis-core-ombro', 'fis-aterrissagem-desaceleracao'],
+    levantador: ['fis-ombro-elastico-escapula', 'fis-agilidade-curta', 'fis-forca-unilateral', 'fis-core-ombro'],
+    libero: ['fis-agilidade-curta', 'fis-tornozelo-panturrilha', 'fis-aterrissagem-desaceleracao', 'fis-core-ombro'],
+    central: ['fis-potencia-salto', 'fis-salto-lateral-controlado', 'fis-aterrissagem-desaceleracao', 'fis-ombro-elastico-escapula'],
+    ponteiro: ['fis-ombro-elastico-escapula', 'fis-aterrissagem-desaceleracao', 'fis-agilidade-curta', 'fis-salto-lateral-controlado'],
+    oposto: ['fis-potencia-salto', 'fis-ombro-elastico-escapula', 'fis-salto-lateral-controlado', 'fis-aterrissagem-desaceleracao'],
   };
   const ids = idsByPosition[position?.id] || physicalTrainingLibrary.map((item) => item.id);
   return physicalTrainingLibrary.filter((item) => ids.includes(item.id));
+}
+
+function physicalCategoryForExercise(exercise) {
+  const focus = String(exercise?.focus || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  if (focus.includes('potencia') || focus.includes('forca') || focus.includes('pliometria') || focus.includes('core')) return 'Força';
+  if (focus.includes('agilidade')) return 'Mobilidade';
+  return 'Prevenção';
+}
+
+function physicalBenefitForExercise(exercise) {
+  const category = physicalCategoryForExercise(exercise);
+  const byCategory = {
+    Força: 'Ajuda a repetir salto, passada e bloqueio com mais potência e menos perda de técnica.',
+    Mobilidade: 'Ajuda a chegar melhor na bola, frear com controle e manter base baixa por mais tempo.',
+    Prevenção: 'Ajuda a proteger ombro, joelho, tornozelo e coluna durante ações repetidas de treino.',
+  };
+  return byCategory[category] || 'Ajuda a preparar o corpo para treinar com mais qualidade.';
 }
 
 function labelForOption(group, value) {
@@ -1334,9 +1647,9 @@ function profileSummaryItems() {
     : 'sem equipamento marcado';
   const pains = athleteProfile.pains?.length
     ? athleteProfile.pains.map((item) => labelForOption('pains', item)).join(', ')
-    : 'nao informado';
+    : 'não informado';
   return [
-    ['Nivel', labelForOption('levels', athleteProfile.level)],
+    ['Nível', labelForOption('levels', athleteProfile.level)],
     ['Objetivo', labelForOption('objectives', athleteProfile.objective)],
     ['Tempo', labelForOption('time', athleteProfile.time)],
     ['Equipamentos', equipment],
@@ -1346,21 +1659,475 @@ function profileSummaryItems() {
 
 function profileTrainingDose() {
   const minutes = Number(athleteProfile.time || 25);
-  if (minutes <= 15) return { duration: '15 min', series: '2 blocos curtos', note: 'Use um exercicio principal e um ajuste tecnico.' };
-  if (minutes <= 25) return { duration: '25 min', series: '3 blocos curtos', note: 'Use tecnica, leitura e um bloco fisico leve.' };
+  if (minutes <= 15) return { duration: '15 min', series: '2 blocos curtos', note: 'Use um exercício principal e um ajuste técnico.' };
+  if (minutes <= 25) return { duration: '25 min', series: '3 blocos curtos', note: 'Use técnica, leitura e um bloco físico leve.' };
   if (minutes <= 40) return { duration: '35 min', series: '4 blocos', note: 'Inclua aquecimento, fundamento principal, saque/defesa e registro.' };
   return { duration: '45 min', series: '4 a 5 blocos', note: 'Aumente volume sem perder qualidade e registre sinais de fadiga.' };
 }
 
 function profileSafetyNote() {
   const pains = athleteProfile.pains || [];
-  const painText = pains.includes('sem-dor') || pains.length === 0
-    ? 'Sem dor marcada: avance volume apenas se a tecnica continuar limpa.'
+  return pains.includes('sem-dor') || pains.length === 0
+    ? 'Sem dor marcada: avance volume apenas se a técnica continuar limpa.'
     : `Dores marcadas: ${pains.map((item) => labelForOption('pains', item)).join(', ')}. Reduza impacto e pare se a dor aumentar.`;
-  const limitationText = athleteProfile.limitations?.trim()
-    ? `Limitacao anotada: ${athleteProfile.limitations.trim()}`
-    : 'Nenhuma limitacao anotada no perfil.';
-  return `${painText} ${limitationText}`;
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function exerciseMinutes(exercise) {
+  const matches = String(exercise.duration || '').match(/\d+/g) || [];
+  const values = matches.map(Number).filter((value) => Number.isFinite(value));
+  return values.length ? Math.max(...values) : 10;
+}
+
+function exerciseTimeTag(exercise) {
+  const minutes = exerciseMinutes(exercise);
+  if (minutes <= 6) return '5 minutos';
+  if (minutes <= 10) return '10 minutos';
+  return '15 minutos';
+}
+
+function exerciseDifficulty(exercise) {
+  const text = normalizeText(`${exercise.title} ${exercise.objective} ${exercise.setup} ${(exercise.variations || []).join(' ')}`);
+  const advancedSignals = [
+    'bola dificil',
+    'bola ruim',
+    'bola de seguranca',
+    'fora do sistema',
+    'fora da antena',
+    'pipe',
+    'explorar bloqueio',
+    'bloqueio formado',
+    'bloqueio duplo',
+    'variacao ofensiva',
+  ];
+  const intermediateSignals = [
+    'mini salto',
+    'potencia',
+    'transicao',
+    'sinal visual',
+    'mudar direita/esquerda',
+    'uma perna',
+    'salto unilateral',
+  ];
+  if (advancedSignals.some((signal) => text.includes(signal))) return 'avançado';
+  return intermediateSignals.some((signal) => text.includes(signal)) ? 'intermediário' : 'iniciante';
+}
+
+function exerciseMaterialTags(exercise) {
+  const text = normalizeText(`${exercise.materials} ${exercise.setup} ${(exercise.variations || []).join(' ')}`);
+  const tags = [];
+  if (text.includes('parede')) tags.push('com parede');
+  if (text.includes('bola')) tags.push('com bola');
+  if (text.includes('elastico')) tags.push('com elástico');
+  if (text.includes('toalha')) tags.push('com toalha');
+  if (text.includes('fita')) tags.push('com fita');
+  if (text.includes('cronometro')) tags.push('com cronômetro');
+  if (text.includes('celular') || text.includes('camera') || text.includes('video')) tags.push('com celular');
+  if (!text.includes('bola')) tags.unshift('sem bola');
+  return [...new Set(tags)];
+}
+
+function exerciseTags(exercise) {
+  return [
+    exercise.fundamental,
+    exerciseTimeTag(exercise),
+    exerciseDifficulty(exercise),
+    ...exerciseMaterialTags(exercise),
+  ].filter(Boolean);
+}
+
+function exerciseSeriesLabel(exercise, preferredSets = null) {
+  const parts = exerciseSeriesParts(exercise, preferredSets);
+  return `${parts.sets} · ${parts.target}`;
+}
+
+function exerciseSeriesParts(exercise, preferredSets = null) {
+  const coreText = normalizeText([
+    exercise.fundamental,
+    exercise.focus,
+    exercise.title,
+    exercise.objective,
+    exercise.setup,
+    exercise.metric,
+    exercise.materials,
+  ].join(' '));
+  const searchText = normalizeText([
+    coreText,
+    ...(exercise.variations || []),
+  ].join(' '));
+  const fundamental = normalizeText(exercise.fundamental || exercise.focus || '');
+  const sets = exerciseSeriesCount(exercise, preferredSets);
+  const setsLabel = `${sets} ${sets === 1 ? 'série' : 'séries'}`;
+
+  if (hasAnyExerciseSignal(coreText, ['salto', 'saltos', 'pliometr', 'explosivo', 'aterrissagem', 'queda'])) {
+    return { sets: setsLabel, target: '3 a 5 repetições' };
+  }
+  if (hasAnyExerciseSignal(coreText, ['prancha', 'sustente', 'segure', 'isometr'])) {
+    return { sets: setsLabel, target: '15 a 30 segundos' };
+  }
+  if (hasAnyExerciseSignal(coreText, ['elastico', 'rotacao externa', 'elevacao em y', 'afundo', 'panturrilha', 'mochila', 'halter'])) {
+    return { sets: setsLabel, target: '8 a 12 repetições' };
+  }
+  if (fundamental.includes('saque')) {
+    return { sets: setsLabel, target: '8 a 10 saques' };
+  }
+  if (fundamental.includes('levantamento') || searchText.includes('toque de dedos')) {
+    return { sets: setsLabel, target: '12 a 20 toques' };
+  }
+  if (fundamental.includes('recepcao') || searchText.includes('manchete')) {
+    return { sets: setsLabel, target: '10 a 15 contatos' };
+  }
+  if (fundamental.includes('defesa') || hasAnyExerciseSignal(searchText, ['cronometro', '20 segundos', 'base defensiva', 'reacao', 'desloque', 'zonas'])) {
+    return { sets: setsLabel, target: '6 a 10 deslocamentos' };
+  }
+  if (hasAnyExerciseSignal(searchText, ['ataque', 'bloqueio', 'passada', 'cobertura', 'transicao'])) {
+    return { sets: setsLabel, target: '6 a 10 repetições' };
+  }
+  return { sets: setsLabel, target: '8 a 12 repetições' };
+}
+
+function exerciseSeriesCount(exercise, preferredSets = null) {
+  if (preferredSets !== null && preferredSets !== undefined && Number.isFinite(Number(preferredSets))) {
+    return Math.max(1, Number(preferredSets));
+  }
+  const minutes = exerciseMinutes(exercise);
+  return minutes <= 6 ? 2 : 3;
+}
+
+function hasAnyExerciseSignal(text, signals) {
+  return signals.some((signal) => text.includes(signal));
+}
+
+function exerciseSeriesPartsFromLabel(label) {
+  const [sets, ...targetParts] = String(label || '').split(' · ');
+  return {
+    sets: sets || '3 séries',
+    target: targetParts.join(' · ') || '',
+  };
+}
+
+function exercisePracticeMarkup(exercise, series = null) {
+  const seriesParts = series ? exerciseSeriesPartsFromLabel(series) : exerciseSeriesParts(exercise);
+  return `
+    <div class="exercise-practice-grid">
+      <div class="exercise-practice-item">
+        <span class="metric-label">Como fazer</span>
+        <p>${ptText(exercise.setup || 'Execute com controle e pare se perder a técnica.')}</p>
+      </div>
+      <div class="exercise-practice-item exercise-series-item">
+        <span class="metric-label">Séries</span>
+        <strong>${ptText(seriesParts.sets)}</strong>
+        ${seriesParts.target ? `<span>${ptText(seriesParts.target)}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function exerciseMoreDetailsMarkup(items) {
+  const visibleItems = items.filter((item) => item?.value);
+  if (!visibleItems.length) return '';
+  return `
+    <details class="exercise-more">
+      <summary>Ver detalhes</summary>
+      <div class="exercise-more-grid">
+        ${visibleItems.map((item) => `
+          <div class="exercise-more-item">
+            <span class="metric-label">${ptText(item.label)}</span>
+            ${Array.isArray(item.value)
+              ? `<ul>${item.value.map((value) => `<li>${ptText(value)}</li>`).join('')}</ul>`
+              : `<p>${ptText(item.value)}</p>`}
+          </div>
+        `).join('')}
+      </div>
+    </details>
+  `;
+}
+
+function exerciseBenefitForPosition(exercise, position = getSelectedPosition()) {
+  const positionName = position?.name || 'atleta';
+  const byFundamental = {
+    Ataque: `Ajuda ${positionName} a escolher a direção antes do último apoio, mantendo braço alto e queda controlada.`,
+    Bloqueio: `Ajuda ${positionName} a chegar com mãos organizadas, tempo de subida e aterrissagem segura.`,
+    Cobertura: `Ajuda ${positionName} a sair da ação principal e proteger a bola rebatida sem perder postura.`,
+    Decisao: `Ajuda ${positionName} a simplificar a escolha quando a bola não chega perfeita.`,
+    Decisão: `Ajuda ${positionName} a simplificar a escolha quando a bola não chega perfeita.`,
+    Defesa: `Ajuda ${positionName} a sustentar base baixa, primeiro passo e recuperação depois do contato.`,
+    Físico: `Ajuda ${positionName} a preparar o corpo para repetir fundamento com menos perda de técnica e menor risco de sobrecarga.`,
+    Fisico: `Ajuda ${positionName} a preparar o corpo para repetir fundamento com menos perda de técnica e menor risco de sobrecarga.`,
+    Leitura: `Ajuda ${positionName} a reconhecer pistas do jogo antes de reagir tarde demais.`,
+    Levantamento: `Ajuda ${positionName} a tocar alto, chegar equilibrado e variar a jogada com mais precisão.`,
+    Recepcao: `Ajuda ${positionName} a ajustar pés e plataforma para entregar uma bola mais jogável.`,
+    Recepção: `Ajuda ${positionName} a ajustar pés e plataforma para entregar uma bola mais jogável.`,
+    Saque: `Ajuda ${positionName} a escolher alvo, controlar força e reduzir erro evitável.`,
+  };
+  return byFundamental[exercise.fundamental] || `Ajuda ${positionName} a treinar um fundamento com critério mensurável em casa.`;
+}
+
+const exerciseOptimizationNotes = {
+  'levantador-toque-alvo': {
+    use: 'Melhor exercício inicial para levantador quando a prioridade é precisão do toque.',
+    replace: 'Se ficar fácil, não aumente força: troque para frente/costas na parede para treinar decisão.',
+    criterion: 'Bola chega no alvo escolhido, com pés ajustados antes das mãos.',
+  },
+  'levantador-ritmo-pes': {
+    use: 'Mantém porque o erro do levantador muitas vezes começa nos pés, não nas mãos.',
+    replace: 'Se o espaço for muito pequeno, faça sem bola e conte só chegadas equilibradas.',
+    criterion: 'Chegar de frente sem cruzar os pés e sem tocar caindo para trás.',
+  },
+  'levantador-engano': {
+    use: 'Vale quando o atleta já consegue tocar com controle e precisa esconder melhor a jogada.',
+    replace: 'Se a técnica do toque ainda falha, use como variação curta depois do toque de dedos.',
+    criterion: 'Olhar e tronco não entregam a escolha antes do gesto final.',
+  },
+  'levantador-front-back-parede': {
+    use: 'Substitui repetições iguais de toque porque força escolha entre bola para frente e para trás.',
+    replace: 'Se houver pouco tempo, faça este no lugar do toque simples.',
+    criterion: 'Escolha correta antes do contato e alvo certo depois do toque.',
+  },
+  'levantador-bola-ruim-segura': {
+    use: 'Treina a decisão que mais economiza erro: simplificar quando o passe sai da zona ideal.',
+    replace: 'Se não tiver bola, mantenha só pés e escolha da solução.',
+    criterion: 'Escolher uma bola segura sem girar tarde nem cair para trás.',
+  },
+  'libero-manchete-alvo': {
+    use: 'É o principal exercício técnico do líbero porque o primeiro contato destrava o ataque.',
+    replace: 'Se repetir demais, varie alvo baixo/médio em vez de criar outro exercício parecido.',
+    criterion: 'Plataforma firme, bola no alvo e base ajustada antes do contato.',
+  },
+  'libero-defesa-postura': {
+    use: 'Fica como base física-técnica para sustentar postura baixa em defesa.',
+    replace: 'Se a postura já está boa, avance para leitura curta ou fundo.',
+    criterion: 'Responder sem levantar o tronco antes de voltar ao centro.',
+  },
+  'libero-plataforma-curta-funda': {
+    use: 'Substitui treino verbal por controle técnico de plataforma, que aparece no passe.',
+    replace: 'Se o alvo ainda falha, reduza para duas zonas antes de usar curta, media e funda.',
+    criterion: 'Plataforma muda cedo e a bola chega no alvo da zona planejada.',
+  },
+  'libero-dig-set-parede': {
+    use: 'Mantém porque todo líbero precisa transformar defesa ruim em bola alta jogável.',
+    replace: 'Se o controle cair, separe em defesa para cima e só depois levantamento.',
+    criterion: 'Defesa vira segunda bola alta para uma zona útil.',
+  },
+  'libero-angulo-curta-fundo': {
+    use: 'É a progressão da defesa de postura: troca repetição por leitura de zona.',
+    replace: 'Se estiver confundindo, volte para três zonas sem bola.',
+    criterion: 'Primeiro passo correto antes de levantar o tronco.',
+  },
+  'central-passo-bloqueio': {
+    use: 'Exercício base do central: deslocar curto, fechar mãos e cair bem.',
+    replace: 'Se o tempo for curto, faça este antes de qualquer ataque simulado.',
+    criterion: 'Mãos chegam juntas e aterrissagem fica silenciosa.',
+  },
+  'central-leitura-levantador': {
+    use: 'Evita salto no chute: treina leitura antes de gastar salto.',
+    replace: 'Se não tiver vídeo, use cartões alternados de meio/ponta/saída.',
+    criterion: 'Escolha feita antes do primeiro passo.',
+  },
+  'central-transicao': {
+    use: 'Diferencio central boa: bloquear e já preparar ataque rápido.',
+    replace: 'Se parecer igual ao bloqueio, reduza salto e foque queda + braço armado.',
+    criterion: 'Tempo curto entre queda e armação do braço.',
+  },
+  'central-eye-sequence': {
+    use: 'Fica como exercício de vídeo/leitura, não como repetição física.',
+    replace: 'Se cansar visualmente, faça 5 pausas boas e pare.',
+    criterion: 'Prever a jogada antes da bola sair da mão do levantador.',
+  },
+  'central-fecha-ponta': {
+    use: 'Complementa o passo de bloqueio porque treina fechar bloqueio duplo na antena.',
+    replace: 'Se cruzar demais os pés, volte para passo lateral sem salto.',
+    criterion: 'Chegar alinhada com a ponta imaginária sem perder eixo.',
+  },
+  'ponteiro-recepcao-ataque': {
+    use: 'Melhor exercício de ponteiro porque conecta passe e preparação de ataque.',
+    replace: 'Se repetir com linha de recepção, mantenha este quando o objetivo for virar bola.',
+    criterion: 'Recepção controlada que vira passada equilibrada.',
+  },
+  'ponteiro-variacao-ofensiva': {
+    use: 'Treina tomada de decisão ofensiva sem precisar bater forte dentro de casa.',
+    replace: 'Se a passada ainda está instável, faça sem salto.',
+    criterion: 'Escolha definida antes do último apoio.',
+  },
+  'ponteiro-cobertura': {
+    use: 'Não compete com ataque: treina a ação logo depois do ataque.',
+    replace: 'Se o treino for muito curto, use como fechamento de 5 minutos.',
+    criterion: 'Sair do ataque e chegar em cobertura com base baixa.',
+  },
+  'ponteiro-out-of-system': {
+    use: 'Prioritário para ponteiro avançar: resolver bola alta, lenta ou fora da antena.',
+    replace: 'Se parecer com variação ofensiva, use este só em semana de bola difícil.',
+    criterion: 'Escolha segura antes do contato e queda equilibrada.',
+  },
+  'ponteiro-recepcao-linha': {
+    use: 'Fica quando a necessidade é responsabilidade de passe, não ataque.',
+    replace: 'Se o atleta já passa bem, faça menos volume e use recepção para passada.',
+    criterion: 'Passe no alvo sem perder a linha lateral.',
+  },
+  'oposto-bola-dificil': {
+    use: 'É o exercício central do oposto para resolver bola imperfeita sem erro grátis.',
+    replace: 'Se houver pouco tempo, faça este antes de diagonal/paralela.',
+    criterion: 'Braço alto e queda equilibrada em bola desconfortável.',
+  },
+  'oposto-explorar-bloqueio': {
+    use: 'Mantém porque ensina a usar o bloqueio como alvo, não só bater forte.',
+    replace: 'Se não tiver bola, simule com mão na borda do alvo.',
+    criterion: 'Escolha da borda antes do gesto e corpo sob controle.',
+  },
+  'oposto-bloqueio-pipe': {
+    use: 'Específico do oposto: ler ponteiro e pipe antes de fechar a mão.',
+    replace: 'Se o salto pesar, faça sem salto e conte decisão correta.',
+    criterion: 'Mãos alinhadas depois da leitura certa.',
+  },
+  'oposto-saida-diagonal-paralela': {
+    use: 'Treina a bola planejada da saída; não substitui bola difícil.',
+    replace: 'Se ficar repetitivo com explorar bloqueio, alterne por semana.',
+    criterion: 'Escolha diagonal/paralela antes do último apoio.',
+  },
+  'oposto-cobertura-direita': {
+    use: 'Liga ataque, cobertura e defesa de direita, que aparecem no mesmo rally.',
+    replace: 'Se estiver cansando, tire a bola e mantenha a sequência de marcas.',
+    criterion: 'Transições completas sem subir demais a postura.',
+  },
+  'universal-saque-alvo': {
+    use: 'Fica para todas as posições porque saque com alvo dá ponto e reduz erro não forçado.',
+    replace: 'Se o saque estiver pesado para o espaço, use bola de meia e conte alvo.',
+    criterion: 'Acerto por alvo e ajuste após erro curto ou longo.',
+  },
+  'universal-defesa-zonas': {
+    use: 'Fica como bloco curto para leitura defensiva e retorno ao centro.',
+    replace: 'Se parecer com outro exercício defensivo, use como aquecimento ou fechamento.',
+    criterion: 'Base baixa, decisão rápida e volta equilibrada.',
+  },
+  'universal-ombro-elastico': {
+    use: 'É preparação, não treino principal: entra antes de saque, ataque, bloqueio ou levantamento.',
+    replace: 'Se não houver elástico, faça Y no chão e wall slide.',
+    criterion: 'Repetições sem dor, sem elevar ombros e sem arquear lombar.',
+  },
+};
+
+function exerciseOptimizationNote(exercise) {
+  const note = exerciseOptimizationNotes[exercise.id];
+  if (note) return note;
+  return {
+    use: 'Use quando este fundamento for prioridade no treino da semana.',
+    replace: 'Se parecer repetitivo, reduza volume e transforme em variação curta.',
+    criterion: exercise.metric || 'Mantenha critério observável antes de aumentar intensidade.',
+  };
+}
+
+function exerciseMatchesFilters(exercise) {
+  return (selectedFundamental === 'Todos' || exercise.fundamental === selectedFundamental)
+    && (selectedExerciseTime === 'Todos' || exerciseTimeTag(exercise) === selectedExerciseTime)
+    && (selectedExerciseDifficulty === 'Todos' || exerciseDifficulty(exercise) === selectedExerciseDifficulty)
+    && (selectedExerciseMaterial === 'Todos' || exerciseMaterialTags(exercise).includes(selectedExerciseMaterial));
+}
+
+function displayLabel(value) {
+  const labels = {
+    Decisao: 'Decisão',
+    Fisico: 'Físico',
+    iniciante: 'Iniciante',
+    intermediário: 'Intermediário',
+    avançado: 'Avançado',
+    Preparacao: 'Preparação',
+    Recepcao: 'Recepção',
+    Recuperacao: 'Recuperação',
+    Revisao: 'Revisão',
+    Sabado: 'Sábado',
+    Terca: 'Terça',
+    Tecnico: 'Técnico',
+    Tatico: 'Tático',
+  };
+  return labels[value] || value;
+}
+
+function ptText(value) {
+  const replacements = [
+    [/\bAnalise\b/g, 'Análise'], [/\banalise\b/g, 'análise'],
+    [/\bAnotacoes\b/g, 'Anotações'], [/\banotacoes\b/g, 'anotações'],
+    [/\bapos\b/g, 'após'],
+    [/\badversario\b/g, 'adversário'], [/\bAdversario\b/g, 'Adversário'],
+    [/\bbraco\b/g, 'braço'], [/\bbracos\b/g, 'braços'],
+    [/\bcabeca\b/g, 'cabeça'],
+    [/\bcamera\b/g, 'câmera'], [/\bCamera\b/g, 'Câmera'],
+    [/\bchao\b/g, 'chão'],
+    [/\bcorrecao\b/g, 'correção'], [/\bcorrecoes\b/g, 'correções'], [/\bCorrecao\b/g, 'Correção'], [/\bCorrecoes\b/g, 'Correções'],
+    [/\bcriterio\b/g, 'critério'], [/\bcriterios\b/g, 'critérios'], [/\bCriterio\b/g, 'Critério'],
+    [/\bdecisao\b/g, 'decisão'], [/\bdecisoes\b/g, 'decisões'], [/\bDecisao\b/g, 'Decisão'],
+    [/\bdirecao\b/g, 'direção'],
+    [/\bdistribuicao\b/g, 'distribuição'],
+    [/\bemergencia\b/g, 'emergência'],
+    [/\bequilibrio\b/g, 'equilíbrio'],
+    [/\bespaco\b/g, 'espaço'], [/\bEspaco\b/g, 'Espaço'],
+    [/\bestavel\b/g, 'estável'], [/\bestaveis\b/g, 'estáveis'],
+    [/\bevidencia\b/g, 'evidência'], [/\bevidencias\b/g, 'evidências'], [/\bEvidencia\b/g, 'Evidência'],
+    [/\bevolucao\b/g, 'evolução'], [/\bEvolucao\b/g, 'Evolução'],
+    [/\bexercicio\b/g, 'exercício'], [/\bexercicios\b/g, 'exercícios'], [/\bExercicio\b/g, 'Exercício'], [/\bExercicios\b/g, 'Exercícios'],
+    [/\bfinalizacao\b/g, 'finalização'],
+    [/\bfisico\b/g, 'físico'], [/\bFisico\b/g, 'Físico'],
+    [/\bforca\b/g, 'força'],
+    [/\bfuncao\b/g, 'função'],
+    [/\bjoelho\b/g, 'joelho'],
+    [/\blancamento\b/g, 'lançamento'],
+    [/\blideranca\b/g, 'liderança'], [/\bLideranca\b/g, 'Liderança'],
+    [/\bmaos\b/g, 'mãos'], [/\bMaos\b/g, 'Mãos'], [/\bmao\b/g, 'mão'], [/\bMao\b/g, 'Mão'],
+    [/\bmaxima\b/g, 'máxima'], [/\bmedia\b/g, 'média'], [/\bMedia\b/g, 'Média'], [/\bmedio\b/g, 'médio'], [/\bmedio\b/g, 'médio'],
+    [/\bnao\b/g, 'não'], [/\bNao\b/g, 'Não'],
+    [/\borganizacao\b/g, 'organização'], [/\bOrganizacao\b/g, 'Organização'],
+    [/\bpe\b/g, 'pé'], [/\bpes\b/g, 'pés'],
+    [/\bposicao\b/g, 'posição'], [/\bPosicao\b/g, 'Posição'],
+    [/\bpreparacao\b/g, 'preparação'], [/\bPreparacao\b/g, 'Preparação'],
+    [/\bprecisao\b/g, 'precisão'],
+    [/\bprovavel\b/g, 'provável'],
+    [/\bproxima\b/g, 'próxima'], [/\bproximo\b/g, 'próximo'],
+    [/\brapida\b/g, 'rápida'], [/\brapido\b/g, 'rápido'],
+    [/\breacao\b/g, 'reação'],
+    [/\brecepcao\b/g, 'recepção'], [/\bRecepcao\b/g, 'Recepção'],
+    [/\brelatorio\b/g, 'relatório'], [/\bRelatorio\b/g, 'Relatório'],
+    [/\brepeticao\b/g, 'repetição'], [/\bRepeticao\b/g, 'Repetição'], [/\brepeticoes\b/g, 'repetições'], [/\bRepeticoes\b/g, 'Repetições'],
+    [/\brevisao\b/g, 'revisão'], [/\bRevisao\b/g, 'Revisão'],
+    [/\brotacao\b/g, 'rotação'], [/\bRotacao\b/g, 'Rotação'],
+    [/\bsaída\b/g, 'saída'], [/\bsaida\b/g, 'saída'],
+    [/\bsequencia\b/g, 'sequência'],
+    [/\bserie\b/g, 'série'], [/\bseries\b/g, 'séries'],
+    [/\btatica\b/g, 'tática'], [/\btatico\b/g, 'tático'], [/\bTatico\b/g, 'Tático'],
+    [/\btecnica\b/g, 'técnica'], [/\bTecnica\b/g, 'Técnica'], [/\btecnico\b/g, 'técnico'], [/\bTecnico\b/g, 'Técnico'],
+    [/\btoracica\b/g, 'torácica'],
+    [/\btransicao\b/g, 'transição'],
+    [/\bacao\b/g, 'ação'], [/\bacoes\b/g, 'ações'], [/\bAcoes\b/g, 'Ações'],
+    [/\butil\b/g, 'útil'], [/\bvideo\b/g, 'vídeo'], [/\bvideos\b/g, 'vídeos'], [/\bVideo\b/g, 'Vídeo'], [/\bVideos\b/g, 'Vídeos'], [/\bvisao\b/g, 'visão'], [/\bvolei\b/g, 'vôlei'], [/\bvoce\b/g, 'você'],
+  ];
+  return replacements.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), String(value ?? ''));
+}
+
+function exerciseCountLabel(count) {
+  return `${count} ${count === 1 ? 'exercício' : 'exercícios'}`;
+}
+
+function renderExerciseFilterGroup(label, filter, options, selected) {
+  return `
+    <div class="exercise-filter-group">
+      <span>${label}</span>
+      <div class="exercise-filter-row" role="group" aria-label="${label}">
+        ${options.map((option) => `
+          <button
+            type="button"
+            data-exercise-filter="${filter}"
+            data-exercise-value="${option}"
+            class="${selected === option ? 'active' : ''}"
+            aria-pressed="${selected === option}"
+          >${displayLabel(option)}</button>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function scoreColor(score) {
@@ -1372,6 +2139,21 @@ function scoreColor(score) {
 function badge(status) {
   const hot = status === 'Pendente' || status === 'Alta';
   return `<span class="badge ${hot ? 'hot' : ''}">${status}</span>`;
+}
+
+function preserveContentScroll(callback) {
+  const content = document.querySelector('.content');
+  const contentTop = content?.scrollTop || 0;
+  const windowTop = window.scrollY || 0;
+  callback();
+  const nextContent = document.querySelector('.content');
+  if (nextContent) nextContent.scrollTop = contentTop;
+  window.scrollTo(0, windowTop);
+  requestAnimationFrame(() => {
+    const frameContent = document.querySelector('.content');
+    if (frameContent) frameContent.scrollTop = contentTop;
+    window.scrollTo(0, windowTop);
+  });
 }
 
 function setPage(page) {
@@ -1392,27 +2174,62 @@ function setFundamental(fundamental) {
   render();
 }
 
+function resetExerciseFilters() {
+  selectedFundamental = 'Todos';
+  selectedExerciseTime = 'Todos';
+  selectedExerciseDifficulty = 'Todos';
+  selectedExerciseMaterial = 'Todos';
+  localStorage.setItem('isa.selectedFundamental', selectedFundamental);
+  localStorage.setItem('isa.exerciseTime', selectedExerciseTime);
+  localStorage.setItem('isa.exerciseDifficulty', selectedExerciseDifficulty);
+  localStorage.setItem('isa.exerciseMaterial', selectedExerciseMaterial);
+}
+
+function setExerciseFilter(filter, value) {
+  if (filter === 'fundamental') selectedFundamental = value;
+  if (filter === 'time') selectedExerciseTime = value;
+  if (filter === 'difficulty') selectedExerciseDifficulty = value;
+  if (filter === 'material') selectedExerciseMaterial = value;
+  localStorage.setItem('isa.selectedFundamental', selectedFundamental);
+  localStorage.setItem('isa.exerciseTime', selectedExerciseTime);
+  localStorage.setItem('isa.exerciseDifficulty', selectedExerciseDifficulty);
+  localStorage.setItem('isa.exerciseMaterial', selectedExerciseMaterial);
+  render();
+}
+
 function setPosition(positionId, nextPage = 'dashboard') {
   if (!positionContents.some((position) => position.id === positionId)) return;
   selectedPositionId = positionId;
-  selectedFundamental = 'Todos';
+  resetExerciseFilters();
   activePage = nextPage;
   localStorage.setItem('isa.selectedPosition', positionId);
-  localStorage.setItem('isa.selectedFundamental', selectedFundamental);
   localStorage.setItem('isa.activePage', activePage);
   render();
+}
+
+function selectOnboardingPosition(positionId) {
+  if (!positionContents.some((position) => position.id === positionId)) return;
+  selectedPositionId = positionId;
+  resetExerciseFilters();
+  onboardingPositionWarning = false;
+  const profile = getProfileDraft();
+  profile.position = positionId;
+  localStorage.setItem('isa.selectedPosition', positionId);
+  renderOnboardingPage();
 }
 
 function saveAthleteProfile(profile) {
   athleteProfile = {
     ...defaultAthleteProfile(),
     ...profile,
+    position: selectedPositionId || profile.position || defaultAthleteProfile().position,
     completed: true,
     updatedAt: new Date().toISOString(),
   };
   localStorage.setItem('isa.profile', JSON.stringify(athleteProfile));
   editingProfile = false;
   profileDraft = null;
+  onboardingPositionWarning = false;
   profileQuestionStep = 0;
   localStorage.removeItem('isa.profileStep');
   render();
@@ -1469,19 +2286,12 @@ function getProfileDraft() {
 
 function currentProfileStepData(profile) {
   const step = profileQuestionSteps[profileQuestionStep];
-  if (step === 'position') {
-    return {
-      number: '01',
-      title: 'Posicao de referencia',
-      detail: 'Use como ponto de partida. Depois voce confirma a posicao nos cards principais.',
-      body: `<div class="profile-choice-grid position-choice-grid">${choiceButtons('position', positionContents.map((position) => [position.id, position.name]), profile.position)}</div>`,
-    };
-  }
+  const number = String(profileQuestionStep + 1).padStart(2, '0');
   if (step === 'body') {
     return {
-      number: '02',
+      number,
       title: 'Idade e altura',
-      detail: 'Esses dados ajudam a calibrar volume, impacto e cuidado fisico.',
+      detail: 'Esses dados ajudam a calibrar volume, impacto e cuidado físico.',
       body: `
         <div class="profile-field-grid">
           <label><span class="metric-label">Idade</span><input id="profile-age" type="number" min="8" max="99" inputmode="numeric" value="${profile.age || ''}" placeholder="Ex: 16" /></label>
@@ -1492,31 +2302,31 @@ function currentProfileStepData(profile) {
   }
   if (step === 'level') {
     return {
-      number: '03',
-      title: 'Nivel atual',
-      detail: 'O nivel define a dificuldade inicial dos exercicios e a tolerancia de volume.',
+      number,
+      title: 'Nível atual',
+      detail: 'O nível define a dificuldade inicial dos exercícios e a tolerância de volume.',
       body: `<div class="profile-choice-grid">${choiceButtons('level', profileQuestionOptions.levels, profile.level)}</div>`,
     };
   }
   if (step === 'equipment') {
     return {
-      number: '04',
+      number,
       title: 'Equipamentos em casa',
-      detail: 'Marque tudo que voce consegue usar sem sair de casa.',
+      detail: 'Marque tudo que você consegue usar sem sair de casa.',
       body: `<div class="profile-choice-grid">${choiceButtons('equipment', profileQuestionOptions.equipment, profile.equipment, true)}</div>`,
     };
   }
   if (step === 'pains') {
     return {
-      number: '05',
-      title: 'Dores ou regioes para cuidado',
+      number,
+      title: 'Dores ou regiões para cuidado',
       detail: 'O plano reduz impacto quando existe dor marcada.',
       body: `<div class="profile-choice-grid">${choiceButtons('pains', profileQuestionOptions.pains, profile.pains, true)}</div>`,
     };
   }
   if (step === 'objective') {
     return {
-      number: '06',
+      number,
       title: 'Objetivo principal',
       detail: 'Escolha uma prioridade para o primeiro ciclo de treino.',
       body: `<div class="profile-choice-grid">${choiceButtons('objective', profileQuestionOptions.objectives, profile.objective)}</div>`,
@@ -1524,16 +2334,16 @@ function currentProfileStepData(profile) {
   }
   if (step === 'time') {
     return {
-      number: '07',
-      title: 'Tempo disponivel',
-      detail: 'A dose do plano muda conforme o tempo real que voce tem por treino.',
+      number,
+      title: 'Tempo disponível',
+      detail: 'A dose do plano muda conforme o tempo real que você tem por treino.',
       body: `<div class="profile-choice-grid">${choiceButtons('time', profileQuestionOptions.time, profile.time)}</div>`,
     };
   }
   return {
-    number: '07',
-    title: 'Tempo disponivel',
-    detail: 'A dose do plano muda conforme o tempo real que voce tem por treino.',
+    number,
+    title: 'Tempo disponível',
+    detail: 'A dose do plano muda conforme o tempo real que você tem por treino.',
     body: `<div class="profile-choice-grid">${choiceButtons('time', profileQuestionOptions.time, profile.time || '25')}</div>`,
   };
 }
@@ -1546,7 +2356,6 @@ function persistCurrentProfileCard() {
     const values = [...document.querySelectorAll(`[data-profile-multi="${group}"].active`)].map((button) => button.dataset.value);
     return values.length ? values : fallback;
   };
-  if (step === 'position') profile.position = activeSingle('position', profile.position || 'levantador');
   if (step === 'body') {
     profile.age = document.querySelector('#profile-age')?.value.trim() || '';
     profile.height = document.querySelector('#profile-height')?.value.trim() || '';
@@ -1565,53 +2374,14 @@ function moveProfileStep(delta) {
   renderProfileQuestionnairePage();
 }
 
-function renderProfileQuestionnairePage() {
-  const profile = getProfileDraft();
-  const currentCard = currentProfileStepData(profile);
-  const isFirstStep = profileQuestionStep === 0;
-  const isLastStep = profileQuestionStep === profileQuestionSteps.length - 1;
-  const isAutoAdvanceStep = ['position', 'level', 'objective'].includes(profileQuestionSteps[profileQuestionStep]);
-  const progress = ((profileQuestionStep + 1) / profileQuestionSteps.length) * 100;
-  app.innerHTML = `
-    <div class="position-select-screen profile-screen">
-      <main class="profile-shell profile-fullscreen-shell">
-        <form class="profile-form panel" id="profile-form">
-          <div class="panel-header profile-fullscreen-header">
-            <div>
-              <div class="brand position-select-brand profile-inline-brand">
-                <div class="brand-mark" aria-hidden="true"><img src="/assets/site-icon-192.png" alt="" /></div>
-                <div>
-                  <h1>Projeto Vôlei</h1>
-                  <p>Perfil de treino</p>
-                </div>
-              </div>
-              <p class="eyebrow">Questionario inicial</p>
-              <h3>Receba um plano feito para o seu jogo.</h3>
-              <p class="panel-subtitle">Treinos, fundamentos e estrategias personalizados para voce evoluir em casa com foco na sua funcao em quadra.</p>
-            </div>
-            <span class="pill active">${profileQuestionStep + 1} de ${profileQuestionSteps.length}</span>
-          </div>
-          <div class="panel-body profile-form-body">
-            <div class="profile-step-track" aria-label="Progresso do questionario"><span style="width:${progress}%"></span></div>
-            <article class="profile-question-card active-step-card">
-              <div class="profile-question-head">
-                <span class="position-card-index">${currentCard.number}</span>
-                <div><h4>${currentCard.title}</h4><p>${currentCard.detail}</p></div>
-              </div>
-              ${currentCard.body}
-            </article>
+function moveOnboardingProfileStep(delta) {
+  persistCurrentProfileCard();
+  profileQuestionStep = Math.max(0, Math.min(profileQuestionSteps.length - 1, profileQuestionStep + delta));
+  localStorage.setItem('isa.profileStep', String(profileQuestionStep));
+  renderOnboardingPage();
+}
 
-            <div class="profile-actions">
-              <button class="btn-ghost" type="button" data-profile-prev ${isFirstStep ? 'disabled' : ''}>Voltar</button>
-              ${isAutoAdvanceStep ? '' : `<button class="btn-primary" type="submit">${isLastStep ? (selectedPositionId ? 'Salvar perfil' : 'Salvar e escolher posicao') : 'Proximo'}</button>`}
-              ${selectedPositionId ? '<button class="btn-ghost" type="button" data-cancel-profile>Cancelar</button>' : ''}
-            </div>
-          </div>
-        </form>
-      </main>
-    </div>
-  `;
-
+function bindProfileQuestionControls({ isAutoAdvanceStep, isLastStep, onMove, onComplete, allowCancel = false }) {
   document.querySelectorAll('[data-profile-single]').forEach((button) => {
     button.addEventListener('click', () => {
       const group = button.dataset.profileSingle;
@@ -1622,7 +2392,7 @@ function renderProfileQuestionnairePage() {
       button.classList.add('active');
       button.setAttribute('aria-pressed', 'true');
       if (isAutoAdvanceStep) {
-        window.setTimeout(() => moveProfileStep(1), 120);
+        window.setTimeout(() => onMove(1), 120);
       }
     });
   });
@@ -1648,62 +2418,216 @@ function renderProfileQuestionnairePage() {
     });
   });
 
-  document.querySelector('[data-cancel-profile]')?.addEventListener('click', () => {
-    editingProfile = false;
-    profileDraft = null;
-    profileQuestionStep = 0;
-    localStorage.removeItem('isa.profileStep');
-    render();
-  });
-  document.querySelector('[data-profile-prev]')?.addEventListener('click', () => moveProfileStep(-1));
+  if (allowCancel) {
+    document.querySelector('[data-cancel-profile]')?.addEventListener('click', () => {
+      editingProfile = false;
+      profileDraft = null;
+      profileQuestionStep = 0;
+      localStorage.removeItem('isa.profileStep');
+      render();
+    });
+  }
+  document.querySelector('[data-profile-prev]')?.addEventListener('click', () => onMove(-1));
 
   document.querySelector('#profile-form').addEventListener('submit', (event) => {
     event.preventDefault();
     persistCurrentProfileCard();
-    if (isLastStep) saveAthleteProfile(profileDraft);
-    else moveProfileStep(1);
+    if (isLastStep) onComplete();
+    else onMove(1);
   });
 }
 
-function renderPositionSelectionPage() {
-  const suggestedPosition = athleteProfile.position || 'levantador';
+function renderProfileQuestionCard({ currentCard, progress, isFirstStep, isLastStep, isAutoAdvanceStep, submitLabel, showCancel = false }) {
+  return `
+    <form class="profile-form panel" id="profile-form">
+      <div class="panel-header profile-fullscreen-header">
+        <div>
+          <p class="eyebrow">Questionário inicial</p>
+          <h3>Receba um plano feito para o seu jogo.</h3>
+          <p class="panel-subtitle">Dados simples para ajustar dose, cuidados e prioridade do treino.</p>
+        </div>
+        <span class="pill active">${profileQuestionStep + 1} de ${profileQuestionSteps.length}</span>
+      </div>
+      <div class="panel-body profile-form-body">
+        <div class="profile-step-track" aria-label="Progresso do questionário"><span style="width:${progress}%"></span></div>
+        <article class="profile-question-card active-step-card">
+          <div class="profile-question-head">
+            <span class="position-card-index">${currentCard.number}</span>
+            <div><h4>${currentCard.title}</h4><p>${currentCard.detail}</p></div>
+          </div>
+          ${currentCard.body}
+        </article>
+
+        <div class="profile-actions">
+          <button class="btn-ghost" type="button" data-profile-prev ${isFirstStep ? 'disabled' : ''}>Voltar</button>
+          ${isAutoAdvanceStep ? '' : `<button class="btn-primary" type="submit">${isLastStep ? submitLabel : 'Próximo'}</button>`}
+          ${showCancel ? '<button class="btn-ghost" type="button" data-cancel-profile>Cancelar</button>' : ''}
+        </div>
+      </div>
+    </form>
+  `;
+}
+
+function renderProfileQuestionnairePage() {
+  const profile = getProfileDraft();
+  const currentCard = currentProfileStepData(profile);
+  const isFirstStep = profileQuestionStep === 0;
+  const isLastStep = profileQuestionStep === profileQuestionSteps.length - 1;
+  const isAutoAdvanceStep = ['level', 'objective'].includes(profileQuestionSteps[profileQuestionStep]);
+  const progress = ((profileQuestionStep + 1) / profileQuestionSteps.length) * 100;
+  app.innerHTML = `
+    <div class="position-select-screen profile-screen">
+      <main class="profile-shell profile-fullscreen-shell">
+        <div class="brand position-select-brand profile-inline-brand">
+          <div class="brand-mark" aria-hidden="true"><img src="public/assets/site-icon-192.png" alt="" /></div>
+          <div>
+            <h1>Projeto Vôlei</h1>
+            <p>Perfil de treino</p>
+          </div>
+        </div>
+        ${renderProfileQuestionCard({
+          currentCard,
+          progress,
+          isFirstStep,
+          isLastStep,
+          isAutoAdvanceStep,
+          submitLabel: 'Salvar dados',
+          showCancel: true,
+        })}
+      </main>
+    </div>
+  `;
+
+  bindProfileQuestionControls({
+    isAutoAdvanceStep,
+    isLastStep,
+    onMove: moveProfileStep,
+    onComplete: () => saveAthleteProfile(profileDraft),
+    allowCancel: true,
+  });
+}
+
+function renderOnboardingPage() {
+  if (!getSelectedPosition()) {
+    renderPositionSelectionPage();
+    return;
+  }
+  const profile = getProfileDraft();
+  const currentCard = currentProfileStepData(profile);
+  const isFirstStep = profileQuestionStep === 0;
+  const isLastStep = profileQuestionStep === profileQuestionSteps.length - 1;
+  const isAutoAdvanceStep = ['level', 'objective'].includes(profileQuestionSteps[profileQuestionStep]);
+  const progress = ((profileQuestionStep + 1) / profileQuestionSteps.length) * 100;
+  const selectedPosition = positionContents.find((position) => position.id === selectedPositionId);
   app.innerHTML = `
     <div class="position-select-screen">
-      <main class="position-select-shell">
-        <section class="position-select-intro">
+      <main class="position-select-shell onboarding-shell questionnaire-after-position-shell">
+        <section class="position-select-intro onboarding-intro">
           <div class="brand position-select-brand">
-            <div class="brand-mark" aria-hidden="true"><img src="/assets/site-icon-192.png" alt="" /></div>
+            <div class="brand-mark" aria-hidden="true"><img src="public/assets/site-icon-192.png" alt="" /></div>
             <div>
               <h1>Projeto Vôlei</h1>
               <p>Treino individual em casa</p>
             </div>
           </div>
-          <p class="eyebrow">Personalizacao por posicao</p>
-          <h2>Escolha sua funcao para montar o treino certo.</h2>
+          <p class="eyebrow">Personalização inicial</p>
+          <h2>Agora ajuste o treino para ${selectedPosition.name}.</h2>
           <p>
-            O app vai mostrar apenas fundamentos, exercicios, leituras e plano semanal ligados a sua posicao.
-            Todos os indicadores continuam zerados ate voce registrar treinos reais.
+            A posição já definiu o contexto do plano. Responda o questionário para ajustar dose,
+            cuidados e prioridade do primeiro ciclo.
           </p>
           <article class="position-common-card">
-            <span class="tag">${sharedServeDefenseFocus.title}</span>
-            <p>${sharedServeDefenseFocus.description}</p>
+            <span class="tag">Posição escolhida</span>
+            <h3>${selectedPosition.name}</h3>
+            <p>${selectedPosition.description}</p>
+            <button class="btn-ghost" type="button" data-change-onboarding-position>Trocar posição</button>
           </article>
+          ${onboardingPositionWarning ? '<article class="position-common-card onboarding-warning"><span class="tag">Falta escolher posição</span><p>Escolha sua função em quadra antes de salvar o perfil.</p></article>' : ''}
+        </section>
+        <section class="onboarding-profile-slot">
+          ${renderProfileQuestionCard({
+            currentCard,
+            progress,
+            isFirstStep,
+            isLastStep,
+            isAutoAdvanceStep,
+            submitLabel: 'Salvar e entrar no site',
+          })}
+        </section>
+      </main>
+    </div>
+  `;
+
+  document.querySelector('[data-change-onboarding-position]')?.addEventListener('click', () => {
+    selectedPositionId = '';
+    profileQuestionStep = 0;
+    localStorage.removeItem('isa.selectedPosition');
+    localStorage.removeItem('isa.profileStep');
+    renderPositionSelectionPage();
+  });
+
+  bindProfileQuestionControls({
+    isAutoAdvanceStep,
+    isLastStep,
+    onMove: moveOnboardingProfileStep,
+    onComplete: () => {
+      if (!selectedPositionId) {
+        onboardingPositionWarning = true;
+        renderOnboardingPage();
+        return;
+      }
+      saveAthleteProfile(profileDraft);
+    },
+  });
+}
+
+function renderPositionSelectionPage() {
+  const suggestedPosition = athleteProfile.position || 'levantador';
+  const profileCard = athleteProfile.completed
+    ? `
           <article class="position-common-card profile-summary-card">
             <span class="tag">Perfil salvo</span>
             <div class="profile-mini-grid">
               ${profileSummaryItems().slice(0, 3).map(([label, value]) => `<span><strong>${label}</strong>${value}</span>`).join('')}
             </div>
-            <button class="btn-ghost" type="button" data-edit-profile>Editar questionario</button>
+            <button class="btn-ghost" type="button" data-edit-profile>Ajustar perfil</button>
           </article>
+      `
+    : `
+          <article class="position-common-card profile-summary-card">
+            <span class="tag">Próximo passo</span>
+            <p>Escolha sua posição e responda um perfil rápido para receber um plano mais adequado ao seu treino em casa.</p>
+          </article>
+      `;
+  app.innerHTML = `
+    <div class="position-select-screen">
+      <main class="position-select-shell">
+        <section class="position-select-intro">
+          <div class="brand position-select-brand">
+            <div class="brand-mark" aria-hidden="true"><img src="public/assets/site-icon-192.png" alt="" /></div>
+            <div>
+              <h1>Projeto Vôlei</h1>
+              <p>Treino individual em casa</p>
+            </div>
+          </div>
+          <p class="eyebrow">Personalização por posição</p>
+          <h2>Treine de acordo com a sua posição.</h2>
+          <p>Receba exercícios, plano semanal e correções alinhados à função que você joga.</p>
+          <div class="position-benefit-strip" aria-label="Benefícios principais">
+            <span>Plano da semana</span>
+            <span>Exercícios em casa</span>
+            <span>Evolução registrada</span>
+          </div>
+          ${profileCard}
         </section>
-        <section class="position-card-grid" aria-label="Escolher posicao de volei">
+          <section class="position-card-grid" aria-label="Escolher posição de vôlei">
           ${positionContents.map((position) => `
             <button class="position-card ${position.id === suggestedPosition ? 'suggested' : ''}" type="button" data-position-id="${position.id}" style="${positionThemeVars(position.id)}">
               <span class="position-card-index">${String(positionContents.indexOf(position) + 1).padStart(2, '0')}</span>
-              <span class="position-card-icon" aria-hidden="true"><img src="/assets/positions/${position.id}-icon.png" alt="" /></span>
+              <span class="position-card-icon" aria-hidden="true"><img src="public/assets/positions/${position.id}-icon.png" alt="" /></span>
               <strong>${position.name}</strong>
               <span>${position.description}</span>
-              <small>${position.id === suggestedPosition ? 'referencia do questionario | ' : ''}${position.fundamentals.slice(0, 3).join(' | ')}</small>
+              <small>${position.id === suggestedPosition ? 'sugestão inicial | ' : ''}${position.fundamentals.slice(0, 3).map(displayLabel).join(' | ')}</small>
             </button>
           `).join('')}
         </section>
@@ -1712,7 +2636,10 @@ function renderPositionSelectionPage() {
   `;
 
   document.querySelectorAll('[data-position-id]').forEach((button) => {
-    button.addEventListener('click', () => setPosition(button.dataset.positionId));
+    button.addEventListener('click', () => {
+      if (athleteProfile.completed) setPosition(button.dataset.positionId);
+      else selectOnboardingPosition(button.dataset.positionId);
+    });
   });
   document.querySelectorAll('[data-edit-profile]').forEach((button) => {
     button.addEventListener('click', openProfileEditor);
@@ -1720,13 +2647,23 @@ function renderPositionSelectionPage() {
 }
 
 function renderShell(content) {
-  const current = navItems.find(([id]) => id === activePage) || navItems[0];
+  const current = pageItems.find(([id]) => id === activePage) || pageItems[0];
   const currentPosition = getSelectedPosition();
+  const topbarCopy = {
+    dashboard: 'Veja o treino ideal para hoje e acompanhe sua evolução.',
+    treinos: 'Sua semana organizada por posição, tempo e objetivo.',
+    exercicios: 'Filtre exercícios por fundamento, tempo e material.',
+    'fisico-mobilidade': 'Prepare o corpo para treinar melhor e reduzir sobrecarga.',
+    individual: 'Transforme erros em metas simples de correção.',
+    leitura: 'Treine decisões de jogo com situações rápidas.',
+    videos: 'Revise movimento quando fizer sentido, sem complicar o treino.',
+    relatorios: 'Registre progresso e transforme treino em evolução.',
+  };
   app.innerHTML = `
     <div class="app" style="${positionThemeVars(currentPosition?.id)}">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true"><img src="/assets/site-icon-192.png" alt="" /></div>
+          <div class="brand-mark" aria-hidden="true"><img src="public/assets/site-icon-192.png" alt="" /></div>
           <div>
             <h1>Projeto Vôlei</h1>
             <p>Treino em casa</p>
@@ -1747,14 +2684,13 @@ function renderShell(content) {
         <header class="topbar">
           <div>
             <p class="eyebrow">${current[3]}</p>
-            <p>Foco atual: exercicios individuais com material simples e criterios claros.</p>
+            <p>${topbarCopy[activePage] || 'Treine com clareza e registre sua evolução.'}</p>
           </div>
           <div class="top-actions">
-            <span class="pill active">${currentPosition?.name || 'Sem posicao'}</span>
+            <span class="pill active">${currentPosition?.name || 'Sem posição'}</span>
             <span class="pill">${labelForOption('time', athleteProfile.time)}</span>
-            <span class="pill">Dados locais</span>
-            <button class="pill position-switch" type="button" data-edit-profile>Editar perfil</button>
-            <button class="pill position-switch" type="button" data-change-position>Trocar posicao</button>
+            <button class="pill position-switch" type="button" data-change-position>Trocar posição</button>
+            <button class="pill position-switch" type="button" data-edit-profile>Ajustar perfil</button>
           </div>
         </header>
         <div class="content">${content}</div>
@@ -1779,154 +2715,142 @@ function renderShell(content) {
 function renderDashboard() {
   const currentPosition = getSelectedPosition();
   const dose = profileTrainingDose();
-  const physicalSessions = sessions.filter((session) => session.style === 'Fisico');
-  const technicalSessions = sessions.filter((session) => session.style === 'Tecnico');
-  const physicalScore = physicalSessions.length
-    ? physicalSessions.reduce((sum, session) => sum + session.quality, 0) / physicalSessions.length
-    : 0;
-  const technicalScore = technicalSessions.length
-    ? technicalSessions.reduce((sum, session) => sum + session.quality, 0) / technicalSessions.length
-    : 0;
-  const fundamentalScore = fundamentals.length
-    ? fundamentals.reduce((sum, item) => sum + item.score, 0) / fundamentals.length
+  const positionFundamentals = currentPosition?.fundamentals || fundamentals.map((item) => item.name);
+  const fundamentalScore = positionFundamentals.length
+    ? positionFundamentals.reduce((sum, name) => sum + scoreForFundamentalName(name), 0) / positionFundamentals.length
     : 0;
   const totalSessions = sessions.length;
   const totalFundamentals = fundamentals.length;
-  const bestFundamental = fundamentals.reduce((best, item) => (item.score > best.score ? item : best), fundamentals[0]);
+  const weeklyPlan = (currentPosition?.weeklyPlan || []).map(([day, focus, task]) => [
+    day,
+    focus,
+    focus === 'Fisico' ? 'Fisico' : focus === 'Revisao' ? 'Revisao' : focus === 'Recuperacao' ? 'Recuperacao' : 'Tecnico',
+    task,
+    focus === 'Recuperacao' ? '15 min' : focus === 'Revisao' ? '20 min' : dose.duration,
+  ]);
+  const todayPlan = weeklyPlan[todayTrainingDayIndex()] || weeklyPlan[0] || ['Hoje', 'Fundamentos', 'Tecnico', 'Treino técnico principal', dose.duration];
+  const todayTraining = buildDailyTrainingPlan(todayPlan, currentPosition, dose);
+  const mainStep = todayTraining.steps.find((step) => String(step.label || '').startsWith('Exercício')) || todayTraining.steps[1] || todayTraining.steps[0];
+  const bestFundamental = positionFundamentals
+    .map((name) => ({ name, score: scoreForFundamentalName(name) }))
+    .reduce((best, item) => (item.score > best.score ? item : best), { name: 'Sem dado', score: 0 });
   const statusSummary = totalSessions
-    ? 'Treinos registrados e prontos para comparar evolucao.'
+    ? 'Treinos registrados e prontos para comparar evolução.'
     : 'Ainda sem treinos registrados nesta base local.';
 
-  const indicators = [
-    {
-      label: 'Fisico',
-      value: physicalScore,
-      detail: `${physicalSessions.length} treinos fisicos registrados`,
-      color: 'var(--green)',
-    },
-    {
-      label: 'Tecnico',
-      value: technicalScore,
-      detail: `${technicalSessions.length} treinos tecnicos registrados`,
-      color: 'var(--teal)',
-    },
-    {
-      label: 'Fundamento',
-      value: fundamentalScore,
-      detail: 'media geral dos fundamentos',
-      color: 'var(--amber)',
-    },
+  const benefitCards = [
+    ['Treino por posição', `Conteúdo ajustado para ${currentPosition?.name || 'sua função'} desde o primeiro acesso.`],
+    ['Plano da semana', 'Dias organizados para saber o que treinar hoje e o que vem depois.'],
+    ['Exercícios em casa', 'Fundamentos com material simples, tempo curto e critério claro.'],
+    ['Correções práticas', 'Erros viram metas de treino, não textos longos de relatório.'],
   ];
-  const progressRows = [
-    ['Treinos registrados', totalSessions, 'sessoes salvas no app'],
-    ['Fundamentos monitorados', currentPosition?.fundamentals.length || totalFundamentals, currentPosition?.fundamentals.join(', ') || 'saque, recepcao, levantamento, ataque, bloqueio e defesa'],
-    ['Melhor fundamento', bestFundamental?.name || 'Sem dado', `${(bestFundamental?.score || 0).toFixed(1)} de 10`],
-    ['Status atual', totalSessions ? 'Em acompanhamento' : 'Sem registro', statusSummary],
+  const progressHighlights = [
+    ['Treinos', totalSessions, totalSessions ? 'sessões concluídas' : 'comece pelo treino de hoje'],
+    ['Fundamentos', currentPosition?.fundamentals.length || totalFundamentals, 'priorizados para sua posição'],
+    ['Melhor ponto', bestFundamental?.name || 'Sem dado', `${(bestFundamental?.score || 0).toFixed(1)} de 10`],
   ];
+  const profileHighlights = profileSummaryItems().slice(0, 3);
 
   renderShell(`
     <div class="content-inner stack">
-      <section class="hero">
-        <img src="/assets/home-training-court.webp" alt="" aria-hidden="true" />
+      <section class="hero dashboard-hero">
+        <img src="public/assets/home-training-court.webp" alt="" aria-hidden="true" />
         <div class="hero-content">
           <div>
-            <p class="eyebrow">Status da atleta</p>
-            <h2>Seu plano individual como ${currentPosition?.name || 'atleta'}.</h2>
+            <h2>Treine de acordo com a sua posição.</h2>
             <p class="hero-copy">
-              ${currentPosition?.description || 'Esta tela mostra apenas como estao os registros, indicadores e fundamentos da pessoa que esta usando o app.'}
+              Veja o treino ideal para hoje, acompanhe sua semana e evolua seus fundamentos com exercícios simples para fazer em casa.
             </p>
+            <div class="hero-actions">
+              <button class="btn-primary" type="button" data-page="treinos">Começar treino</button>
+              <button class="btn-ghost" type="button" data-page="treinos">Ver plano da semana</button>
+              <button class="btn-ghost" type="button" data-page="relatorios">Registrar progresso</button>
+            </div>
             <div class="training-cycle status-cycle" aria-label="Resumo do progresso atual">
-              <div class="cycle-item"><strong>${totalSessions}</strong><span>treinos registrados</span></div>
-              <div class="cycle-item"><strong>${labelForOption('levels', athleteProfile.level)}</strong><span>nivel informado</span></div>
-              <div class="cycle-item"><strong>${dose.duration}</strong><span>dose por treino</span></div>
-              <div class="cycle-item"><strong>${fundamentalScore.toFixed(1)}</strong><span>media dos fundamentos</span></div>
+              <div class="cycle-item"><strong>${currentPosition?.name || 'Atleta'}</strong><span>posição escolhida</span></div>
+              <div class="cycle-item"><strong>${todayTraining.duration}</strong><span>treino de hoje</span></div>
+              <div class="cycle-item"><strong>${totalSessions}</strong><span>treinos concluídos</span></div>
+              <div class="cycle-item"><strong>${fundamentalScore.toFixed(1)}</strong><span>progresso médio</span></div>
             </div>
           </div>
-          <div class="progress-snapshot">
-            <p class="metric-label">Resumo local</p>
-            <strong>${totalSessions ? 'Com dados' : 'Sem dados'}</strong>
-            <span>${statusSummary}</span>
-            <div class="indicator-track"><span style="width:${Math.min(100, totalSessions * 20)}%"></span></div>
-          </div>
+          <article class="today-training-card">
+            <p class="metric-label">Treino de hoje</p>
+            <h3>${ptText(displayLabel(todayTraining.day))}: ${ptText(displayLabel(todayTraining.focus))}</h3>
+            <p>${ptText(todayTraining.detail)}</p>
+            <div class="today-training-main">
+              <span>${ptText(displayLabel(mainStep?.fundamental || todayTraining.type))}</span>
+              <strong>${ptText(mainStep?.title || 'Exercício principal')}</strong>
+              <small>${ptText(mainStep?.series || dose.series)} · ${ptText(mainStep?.duration || todayTraining.duration)}</small>
+            </div>
+            <button class="btn-primary" type="button" data-page="treinos">Abrir treino completo</button>
+          </article>
         </div>
       </section>
 
-      <div class="dashboard-grid">
-        <div class="stack">
-          <section class="dashboard-indicators">
-            ${indicators.map((indicator) => `
-              <article class="dashboard-indicator-card" style="--indicator-color:${indicator.color}">
-                <div class="dashboard-indicator-top">
-                  <p class="metric-label">${indicator.label}</p>
-                  <span class="indicator-status">0-10</span>
-                </div>
-                <strong>${indicator.value.toFixed(1)}</strong>
-                <div class="indicator-track">
-                  <span style="width:${indicator.value * 10}%"></span>
-                </div>
-                <p>${indicator.detail}</p>
-              </article>
-            `).join('')}
-          </section>
+      <section class="benefit-strip" aria-label="Principais benefícios">
+        ${benefitCards.map(([title, text]) => `
+          <article class="benefit-card">
+            <strong>${ptText(title)}</strong>
+            <p>${ptText(text)}</p>
+          </article>
+        `).join('')}
+      </section>
 
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <h3>Foco da posicao</h3>
-                <p class="panel-subtitle">Conteudo filtrado pela funcao escolhida na entrada do app.</p>
-              </div>
-            </div>
-            <div class="panel-body progress-row-list">
-              ${progressRows.map(([label, value, detail]) => `
-                <article class="progress-row">
-                  <div>
-                    <h4>${label}</h4>
-                    <p>${detail}</p>
-                  </div>
-                  <strong>${value}</strong>
-                </article>
-              `).join('')}
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <h3>Ajustes do perfil</h3>
-                <p class="panel-subtitle">Esses dados mudam dose, cuidados e prioridade do plano.</p>
-              </div>
-              <button class="btn-ghost" data-edit-profile>Editar perfil</button>
-            </div>
-            <div class="panel-body profile-mini-grid">
-              ${profileSummaryItems().map(([label, value]) => `<span><strong>${label}</strong>${value}</span>`).join('')}
-              <span><strong>Cuidados</strong>${profileSafetyNote()}</span>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <h3>Plano semanal sugerido</h3>
-                <p class="panel-subtitle">Semana inicial para treinar sozinha em casa, com dados ainda zerados.</p>
-              </div>
-              <button class="btn-ghost" data-page="treinos">Ver plano completo</button>
-            </div>
-            <div class="panel-body weekly-plan-grid">
-              ${(currentPosition?.weeklyPlan || []).slice(0, 4).map(([day, focus, task]) => `
-                <article class="weekly-plan-card">
-                  <div class="weekly-plan-top"><h4>${focus}</h4><time>${day}</time></div>
-                  <strong>${task}</strong>
-                </article>
-              `).join('')}
-            </div>
-          </section>
-        </div>
-
-        <aside class="panel home-court-card">
+      <section class="home-summary-grid">
+        <article class="panel home-week-panel">
           <div class="panel-header">
             <div>
-              <h3>Fundamentos da posicao</h3>
-              <p class="panel-subtitle">Prioridades para ${currentPosition?.name || 'esta posicao'}.</p>
+              <h3>Semana de treino</h3>
+              <p class="panel-subtitle">Veja o que vem depois do treino de hoje.</p>
+            </div>
+            <button class="btn-ghost" data-page="treinos">Ver plano</button>
+          </div>
+          <div class="panel-body home-week-list">
+            ${weeklyPlan.slice(0, 4).map(([day, focus, type, task], index) => `
+              <div class="home-week-row ${index === todayTrainingDayIndex() ? 'is-today' : ''}">
+                <span>${ptText(displayLabel(day))}</span>
+                <div>
+                  <strong>${ptText(displayLabel(focus))}</strong>
+                  <p>${ptText(task)}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </article>
+
+        <article class="panel home-progress-panel">
+          <div class="panel-header">
+            <div>
+              <h3>Progresso do atleta</h3>
+              <p class="panel-subtitle">${ptText(statusSummary)}</p>
+            </div>
+            <button class="btn-ghost" data-page="relatorios">Registrar</button>
+          </div>
+          <div class="panel-body home-progress-list">
+            ${progressHighlights.map(([label, value, detail]) => `
+              <div>
+                <span>${ptText(label)}</span>
+                <strong>${ptText(value)}</strong>
+                <small>${ptText(detail)}</small>
+              </div>
+            `).join('')}
+          </div>
+          <div class="home-profile-strip">
+            ${profileHighlights.map(([label, value]) => `<span><strong>${ptText(label)}</strong>${ptText(value)}</span>`).join('')}
+          </div>
+        </article>
+      </section>
+
+      <details class="panel dashboard-details-panel">
+        <summary>
+          <span>Fundamentos da posição</span>
+          <small>Ver prioridades de ${currentPosition?.name || 'sua posição'}</small>
+        </summary>
+        <div class="dashboard-details-body">
+          <div class="panel-header">
+            <div>
+              <h3>Prioridades técnicas</h3>
+              <p class="panel-subtitle">Use estes fundamentos para escolher exercícios e registrar evolução.</p>
             </div>
           </div>
           <div class="home-court-visual" aria-hidden="true">
@@ -1935,29 +2859,242 @@ function renderDashboard() {
             <span class="court-player"></span>
           </div>
           <div class="panel-body stack">
-            ${(currentPosition?.fundamentals || []).map((fundamental) => `
+            ${(currentPosition?.fundamentals || []).map((fundamental) => {
+              const score = scoreForFundamentalName(fundamental);
+              return `
               <div class="fundamental-status-row">
-                <span>${fundamental}</span>
-                <div class="indicator-track"><span style="width:0%"></span></div>
-                <strong>0.0</strong>
+                <span>${ptText(displayLabel(fundamental))}</span>
+                <div class="indicator-track"><span style="width:${score * 10}%"></span></div>
+                <strong>${score.toFixed(1)}</strong>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
-        </aside>
-      </div>
+        </div>
+      </details>
     </div>
   `);
+}
+
+function simpleTextMatch(text, value) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .includes(String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+}
+
+function trainingSeriesForDose(multiplier = 1) {
+  const minutes = Number(athleteProfile.time || 25);
+  const base = minutes <= 15 ? 2 : minutes <= 25 ? 3 : 4;
+  return Math.max(1, Math.round(base * multiplier));
+}
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateBr(date = new Date()) {
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatTimeBr(date = new Date()) {
+  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatWeekdayBr(date = new Date()) {
+  return date.toLocaleDateString('pt-BR', { weekday: 'long' });
+}
+
+function todayTrainingDayIndex() {
+  return [6, 0, 1, 2, 3, 4, 5][new Date().getDay()] || 0;
+}
+
+function syncSelectedTrainingDayWithToday(weekLength) {
+  const todayKey = localDateKey();
+  const storedDate = localStorage.getItem('isa.selectedTrainingDate');
+  if (storedDate !== todayKey || !Number.isFinite(selectedTrainingDay)) {
+    selectedTrainingDay = todayTrainingDayIndex();
+    localStorage.setItem('isa.selectedTrainingDate', todayKey);
+    localStorage.setItem('isa.selectedTrainingDay', String(selectedTrainingDay));
+  }
+  if (selectedTrainingDay < 0 || selectedTrainingDay >= weekLength) {
+    selectedTrainingDay = 0;
+    localStorage.setItem('isa.selectedTrainingDay', String(selectedTrainingDay));
+  }
+}
+
+function exerciseMatchesWeeklyFocus(exercise, focusText) {
+  const searchable = `${exercise.fundamental} ${exercise.title} ${exercise.objective}`;
+  return simpleTextMatch(focusText, exercise.fundamental)
+    || simpleTextMatch(focusText, exercise.title)
+    || searchable.split(/\s+/).some((word) => word.length > 4 && simpleTextMatch(focusText, word));
+}
+
+function weeklyExercisesForDay(dayPlan, position) {
+  const [day, focus, type, detail] = dayPlan;
+  const focusText = `${day} ${focus} ${type} ${detail}`;
+  if (simpleTextMatch(focusText, 'recuperacao')) {
+    return mobilityPrep.slice(0, 3).map(([title, setup, series, reason]) => ({
+      title: `${title}: ${setup}`,
+      fundamental: 'Mobilidade',
+      setup: reason,
+      metric: 'Movimento leve, sem dor e com respiração controlada.',
+      series,
+      duration: 'leve',
+    }));
+  }
+  if (simpleTextMatch(focusText, 'fisico')) {
+    return getPositionPhysicalTraining(position).slice(0, 3).map((exercise) => ({
+      ...exercise,
+      fundamental: exercise.focus,
+      series: exerciseSeriesLabel(exercise, trainingSeriesForDose(0.75)),
+    }));
+  }
+  if (simpleTextMatch(focusText, 'saque') || simpleTextMatch(focusText, 'defesa')) {
+    return sharedServeDefenseFocus.exercises.map((exercise) => ({
+      ...exercise,
+      series: exerciseSeriesLabel(exercise, trainingSeriesForDose()),
+    }));
+  }
+  const positionExercises = position?.homeExercises || [];
+  const matched = positionExercises.filter((exercise) => exerciseMatchesWeeklyFocus(exercise, focusText));
+  const fallback = matched.length ? matched : positionExercises.slice(0, 2);
+  return fallback.slice(0, 3).map((exercise, index) => ({
+    ...exercise,
+    series: exerciseSeriesLabel(exercise, trainingSeriesForDose(index === 0 ? 1 : 0.75)),
+  }));
+}
+
+function buildDailyTrainingPlan(dayPlan, position, dose) {
+  const [day, focus, type, detail, duration] = dayPlan;
+  const exercises = weeklyExercisesForDay(dayPlan, position);
+  const mainExercises = exercises.length ? exercises : sharedServeDefenseFocus.exercises;
+  const steps = [
+    {
+      label: 'Preparação',
+      title: 'Aquecimento técnico curto',
+      fundamental: 'Entrada do treino',
+      series: '1 bloco',
+      setup: `Prepare espaço, material e objetivo do dia: ${ptText(detail)}`,
+      metric: 'Começar leve e sem pressa para manter técnica limpa.',
+      duration: '3 a 5 min',
+    },
+    ...mainExercises.map((exercise, index) => ({
+      label: `Exercício ${index + 1}`,
+      title: ptText(exercise.title),
+      fundamental: ptText(displayLabel(exercise.fundamental || type)),
+      series: exercise.series || exerciseSeriesLabel(exercise, trainingSeriesForDose(index === 0 ? 1 : 0.75)),
+      setup: ptText(exercise.setup),
+      metric: ptText(exercise.metric),
+      duration: ptText(exercise.duration || duration || dose.duration),
+    })),
+    {
+      label: 'Fechamento',
+      title: 'Registro rápido do treino',
+      fundamental: 'Evolução',
+      series: '1 anotação',
+      setup: 'Anote o que saiu melhor, o que perdeu qualidade e o que deve repetir no próximo treino.',
+      metric: 'Uma evidência objetiva: acertos, repetições limpas, dor, vídeo ou decisão tomada.',
+      duration: '2 min',
+    },
+  ];
+  return { day, focus, type, detail, duration, steps };
+}
+
+function dailyTrainingPanelMarkup(dailyTraining) {
+  const completed = completedTrainingForDaily(dailyTraining);
+  const buttonLabel = completed ? 'Treino concluído' : 'Concluir treino';
+  return `
+    <section class="panel daily-training-panel" id="daily-training-panel" role="tabpanel" aria-live="polite">
+      <div class="panel-header">
+        <div>
+          <h3>Treino de ${ptText(displayLabel(dailyTraining.day))}: ${ptText(displayLabel(dailyTraining.focus))}</h3>
+          <p class="panel-subtitle">Comece pelo aquecimento, faça os exercícios na ordem e conclua para registrar evolução.</p>
+        </div>
+        <div class="daily-training-actions">
+          <span class="pill active">${dailyTraining.duration}</span>
+          <button class="${completed ? 'btn-ghost training-completed-button' : 'btn-primary'}" type="button" data-complete-training ${completed ? 'disabled aria-disabled="true"' : ''}>
+            ${buttonLabel}
+          </button>
+        </div>
+      </div>
+      <div class="panel-body">
+        ${completed ? `<article class="training-completed-note"><strong>Registro salvo hoje</strong><span>${ptText(completed.date)} às ${ptText(completed.time)} · ${ptText(completed.position)} · ${ptText(displayLabel(completed.type))}</span></article>` : ''}
+        <div class="training-kickoff-strip" aria-label="Resumo do treino do dia">
+          <article>
+            <span>Fundamento do dia</span>
+            <strong>${ptText(displayLabel(dailyTraining.focus))}</strong>
+          </article>
+          <article>
+            <span>Dose</span>
+            <strong>${dailyTraining.steps.length} blocos · ${ptText(dailyTraining.duration)}</strong>
+          </article>
+          <article>
+            <span>Critério</span>
+            <strong>Técnica limpa antes de volume</strong>
+          </article>
+        </div>
+        <ol class="daily-training-list">
+          ${dailyTraining.steps.map((step, index) => `
+            <li class="daily-training-step">
+              <span class="session-step-number">${index + 1}</span>
+              <div>
+                <div class="daily-training-step-top">
+                  <span class="tag">${ptText(step.label)}</span>
+                  <strong>${ptText(step.series)}</strong>
+                </div>
+                <h4>${ptText(step.title)}</h4>
+                <p>${ptText(step.setup)}</p>
+                <div class="daily-training-meta">
+                  <span>${ptText(displayLabel(step.fundamental))}</span>
+                  <span>${ptText(step.duration)}</span>
+                </div>
+                <p class="muted"><strong>Critério:</strong> ${ptText(step.metric)}</p>
+              </div>
+            </li>
+          `).join('')}
+        </ol>
+      </div>
+    </section>
+  `;
+}
+
+function bindCompleteTrainingButton(dailyTraining) {
+  document.querySelector('[data-complete-training]')?.addEventListener('click', () => {
+    preserveContentScroll(() => {
+      completeDailyTraining(dailyTraining);
+      renderTrainingPage();
+    });
+  });
+  document.querySelector('[data-delete-current-training]')?.addEventListener('click', (event) => {
+    const sessionId = event.currentTarget.dataset.deleteCurrentTraining;
+    if (!sessionId) return;
+    preserveContentScroll(() => {
+      deleteCompletedTraining(sessionId);
+      renderTrainingPage();
+    });
+  });
+}
+
+function bindDeleteTrainingButtons() {
+  document.querySelectorAll('[data-delete-training]').forEach((button) => {
+    button.addEventListener('click', () => {
+      preserveContentScroll(() => {
+        deleteCompletedTraining(button.dataset.deleteTraining);
+        renderTrainingPage();
+      });
+    });
+  });
 }
 
 function renderTrainingPage() {
   const currentPosition = getSelectedPosition();
   const dose = profileTrainingDose();
   const objectiveLabel = labelForOption('objectives', athleteProfile.objective);
-  const personalizationCriteria = [
-    ['Objetivo', objectiveLabel],
-    ['Estagio', 'Iniciante, medio ou avancado mudam volume, ritmo e criterio.'],
-    ['Posicao', `${currentPosition?.name || 'Posicao'} define fundamentos, leitura e exercicios principais.`],
-  ];
   const weeklyPlan = (currentPosition?.weeklyPlan || []).map(([day, focus, task]) => [
     day,
     focus,
@@ -1965,159 +3102,200 @@ function renderTrainingPage() {
     task,
     focus === 'Recuperacao' ? '15 min' : focus === 'Revisao' ? '20 min' : dose.duration,
   ]);
+  syncSelectedTrainingDayWithToday(weeklyPlan.length);
+  const selectedDayPlan = weeklyPlan[selectedTrainingDay] || weeklyPlan[0] || ['Hoje', 'Treino', 'Tecnico', 'Exercício principal', dose.duration];
+  const dailyTraining = buildDailyTrainingPlan(selectedDayPlan, currentPosition, dose);
   const weekSummary = [
-    ['Posicao', currentPosition?.name || 'Nao escolhida'],
+    ['Posição', currentPosition?.name || 'Atleta'],
     ['Objetivo', objectiveLabel],
-    ['Fisico', '1 dia'],
-    ['Dados', '0 registros'],
+    ['Dose base', dose.duration],
+    ['Progresso', `${sessions.length} ${sessions.length === 1 ? 'treino' : 'treinos'}`],
   ];
   renderShell(`
     <div class="content-inner stack">
-      <section class="panel">
+      ${dailyTrainingPanelMarkup(dailyTraining)}
+
+      <section class="panel training-week-tabs-panel">
         <div class="panel-header">
           <div>
-            <h3>Plano personalizado de treino</h3>
-            <p class="panel-subtitle">Semana sugerida para ${currentPosition?.name || 'a posicao escolhida'}, com exercicios individuais e em casa.</p>
+            <h3>Plano da semana</h3>
+            <p class="panel-subtitle">Escolha um dia para ver o treino completo. O dia atual já vem selecionado.</p>
           </div>
-          <span class="pill active">${currentPosition?.name || 'posicao'}</span>
+          <span class="pill active">${currentPosition?.name || 'Atleta'}</span>
         </div>
-        <div class="panel-body session-plan-grid">
-          ${personalizationCriteria.map(([title, detail], index) => `
-            <article class="session-step-card">
-              <span class="session-step-number">${index + 1}</span>
-              <div>
-                <h4>${title}</h4>
-                <p>${detail}</p>
-              </div>
-            </article>
-          `).join('')}
+        <div class="panel-body">
+          <div class="training-plan-strip" aria-label="Resumo simples do plano">
+            ${weekSummary.map(([label, value]) => `<article><span>${ptText(label)}</span><strong>${ptText(value)}</strong></article>`).join('')}
+          </div>
+          <div class="weekly-plan-grid" role="tablist" aria-label="Dias da semana personalizada">
+            ${weeklyPlan.map(([day, focus, type, detail, duration], index) => `
+              <button class="weekly-plan-card weekly-plan-button ${index === selectedTrainingDay ? 'active' : ''}" type="button" role="tab" data-training-day="${index}" aria-selected="${index === selectedTrainingDay}" aria-controls="daily-training-panel">
+                <div class="weekly-plan-top">
+                  <span class="tag">${ptText(displayLabel(type))}</span>
+                  <time>${ptText(duration)}</time>
+                </div>
+                <h4>${ptText(displayLabel(day))}</h4>
+                <strong>${ptText(displayLabel(focus))}</strong>
+                <p>${ptText(detail)}</p>
+              </button>
+            `).join('')}
+          </div>
+          <div class="training-plan-support">
+            <p><strong>Como usar:</strong> ${ptText(dose.series)}. ${ptText(dose.note)}</p>
+            <p><strong>Cuidado:</strong> ${profileSafetyNote()}</p>
+          </div>
         </div>
       </section>
 
-      <div class="form-grid">
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h3>Semana personalizada</h3>
-              <p class="panel-subtitle">Modelo de organizacao: cada dia tem um foco principal para a atleta acompanhar sem confusao.</p>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="weekly-plan-grid">
-              ${weeklyPlan.map(([day, focus, type, detail, duration]) => `
-                <article class="weekly-plan-card">
-                  <div class="weekly-plan-top">
-                    <span class="tag">${type}</span>
-                    <time>${duration}</time>
-                  </div>
-                  <h4>${day}</h4>
-                  <strong>${focus}</strong>
-                  <p>${detail}</p>
-                </article>
-              `).join('')}
-            </div>
-          </div>
-        </section>
-
-        <aside class="panel">
-          <div class="panel-header"><h3>Resumo da semana</h3><span class="pill active">organizacao</span></div>
-          <div class="panel-body stack">
-            <div class="dose-grid" aria-label="Dose simples do treino">
-              ${weekSummary.map(([label, value]) => `<div class="dose-box"><span class="metric-label">${label}</span><strong>${value}</strong></div>`).join('')}
-            </div>
-            <article class="note-box">
-              <p><strong style="color:white">Dose do perfil</strong></p>
-              <p>${dose.series}: ${dose.note}</p>
-            </article>
-            <article class="note-box">
-              <p><strong style="color:white">Cuidados</strong></p>
-              <p>${profileSafetyNote()}</p>
-            </article>
-          </div>
-        </aside>
-      </div>
+      <details class="panel training-history-panel">
+        <summary>
+          <span>Histórico de treinos</span>
+          <small>${sessions.length} ${sessions.length === 1 ? 'registro salvo' : 'registros salvos'}</small>
+        </summary>
+        <div class="panel-body">
+          ${completedTrainingHistoryMarkup()}
+        </div>
+      </details>
     </div>
   `);
+
+  bindCompleteTrainingButton(dailyTraining);
+  bindDeleteTrainingButtons();
+
+  document.querySelectorAll('[data-training-day]').forEach((button) => {
+    button.addEventListener('click', () => {
+      selectedTrainingDay = Number(button.dataset.trainingDay || 0);
+      localStorage.setItem('isa.selectedTrainingDate', localDateKey());
+      localStorage.setItem('isa.selectedTrainingDay', String(selectedTrainingDay));
+      document.querySelectorAll('[data-training-day]').forEach((item) => {
+        const isActive = Number(item.dataset.trainingDay || 0) === selectedTrainingDay;
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      const nextPlan = weeklyPlan[selectedTrainingDay] || weeklyPlan[0];
+      const nextTraining = buildDailyTrainingPlan(nextPlan, currentPosition, dose);
+      const currentPanel = document.querySelector('#daily-training-panel');
+      if (currentPanel) currentPanel.outerHTML = dailyTrainingPanelMarkup(nextTraining);
+      bindCompleteTrainingButton(nextTraining);
+    });
+  });
 }
 
 function renderPhysicalMobilityPage() {
   const currentPosition = getSelectedPosition();
   const dose = profileTrainingDose();
   const physicalBlocks = getPositionPhysicalTraining(currentPosition);
+  const physicalCategories = [
+    ['Força', 'Potência e estabilidade para salto, ataque, bloqueio e defesa.'],
+    ['Mobilidade', 'Base baixa, freio e deslocamento com mais liberdade.'],
+    ['Prevenção', 'Ombro, joelho e tornozelo preparados para repetir sem sobrecarga.'],
+    ['Recuperação', 'Baixar a carga, respirar e ajustar quando o corpo pedir.'],
+  ];
+  const physicalCategoryOrder = ['Força', 'Mobilidade', 'Prevenção'];
+  const physicalGroups = physicalCategoryOrder
+    .map((category) => ({
+      category,
+      description: physicalCategories.find(([name]) => name === category)?.[1] || '',
+      items: physicalBlocks.filter((exercise) => physicalCategoryForExercise(exercise) === category),
+    }))
+    .filter((group) => group.items.length);
+  const recoverySteps = [
+    ['Respirar', '2 minutos de respiração nasal para baixar o ritmo depois do bloco principal.'],
+    ['Soltar', 'Mobilidade leve de tornozelo, quadril e ombro sem forçar amplitude.'],
+    ['Ajustar', profileSafetyNote()],
+  ];
   renderShell(`
     <div class="content-inner stack">
       <section class="panel physical-training-panel">
         <div class="panel-header">
           <div>
-            <h3>Fisico e Mobilidade para ${currentPosition?.name || 'sua posicao'}</h3>
-            <p class="panel-subtitle">Blocos ajustados pelo perfil: ${dose.duration} por treino, com cuidado para dores e limitacoes informadas.</p>
+            <h3>Prepare o corpo para jogar melhor</h3>
+            <p class="panel-subtitle">Força, mobilidade e prevenção para sustentar o treino da posição sem complicar a rotina.</p>
           </div>
-          <span class="pill active">${dose.series}</span>
+          <button class="btn-primary" type="button" data-page="treinos">Começar treino</button>
         </div>
-        <div class="panel-body position-profile-grid">
-          ${(currentPosition?.physicalFocus || []).map((item) => `
-            <article><span class="metric-label">Foco fisico da posicao</span><div class="content-list compact"><p>${item}</p></div></article>
-          `).join('')}
-          <article><span class="metric-label">Cuidado do perfil</span><div class="content-list compact"><p>${profileSafetyNote()}</p></div></article>
+        <div class="physical-dose-row">
+          <span class="pill active">${ptText(dose.duration)}</span>
+          <span class="pill">${ptText(dose.series)}</span>
+          <span class="pill">${currentPosition?.name || 'Posição atual'}</span>
         </div>
-        <div class="panel-body physical-training-grid">
-          ${physicalBlocks.map((exercise) => `
-            <article class="exercise-library-card physical-training-card">
-              <div class="exercise-card-top">
-                <span class="tag">${exercise.focus}</span>
-                <span class="metric-label">${exercise.duration}</span>
-              </div>
-              <h3>${exercise.title}</h3>
-              <p class="exercise-objective">${exercise.objective}</p>
-              <div class="exercise-meta-grid">
-                <div><span class="metric-label">Formato</span><strong>Individual em casa</strong></div>
-                <div><span class="metric-label">Material</span><strong>${exercise.materials}</strong></div>
-              </div>
-              <div class="exercise-detail">
-                <span class="metric-label">Como fazer em casa</span>
-                <p>${exercise.setup}</p>
-              </div>
-              <div class="exercise-detail">
-                <span class="metric-label">Mobilidade antes</span>
-                <p>${exercise.mobility}</p>
-              </div>
-              <div class="physical-card-split">
-                <div class="exercise-detail">
-                  <span class="metric-label">Variacoes</span>
-                  <ul>${exercise.variations.map((variation) => `<li>${variation}</li>`).join('')}</ul>
-                </div>
-                <div class="exercise-rest">
-                  <span class="metric-label">Descanso</span>
-                  <p>${exercise.rest}</p>
-                </div>
-              </div>
-              <div class="exercise-metric">
-                <span class="metric-label">Metrica</span>
-                <p>${exercise.metric}</p>
-              </div>
-              <p class="exercise-evidence">${exercise.evidence}</p>
+        <div class="panel-body physical-summary-grid">
+          ${physicalCategories.map(([title, detail]) => `
+            <article>
+              <span class="metric-label">${ptText(title)}</span>
+              <p>${ptText(detail)}</p>
             </article>
+          `).join('')}
+        </div>
+        <div class="panel-body physical-training-stack">
+          ${physicalGroups.map((group) => `
+            <section class="physical-category-block" aria-label="${ptText(group.category)}">
+              <div class="physical-category-header">
+                <div>
+                  <span class="metric-label">${ptText(group.category)}</span>
+                  <p>${ptText(group.description)}</p>
+                </div>
+                <strong>${group.items.length} ${group.items.length === 1 ? 'bloco' : 'blocos'}</strong>
+              </div>
+              <div class="physical-training-grid">
+                ${group.items.map((exercise) => `
+                  <article class="exercise-library-card physical-training-card">
+                    <div class="exercise-card-top">
+                      <span class="tag">${displayLabel(exercise.focus)}</span>
+                      <span class="metric-label">${ptText(exercise.duration)}</span>
+                    </div>
+                    <h3>${ptText(exercise.title)}</h3>
+                    <p class="exercise-card-objective">${ptText(exercise.objective)}</p>
+                    ${exercisePracticeMarkup(exercise)}
+                    ${exerciseMoreDetailsMarkup([
+                      { label: 'Material', value: exercise.materials },
+                      { label: 'Mobilidade antes', value: exercise.mobility },
+                      { label: 'Variações', value: exercise.variations || [] },
+                      { label: 'Descanso', value: exercise.rest },
+                      { label: 'Métrica', value: exercise.metric },
+                      { label: 'Por que ajuda', value: physicalBenefitForExercise(exercise) },
+                    ])}
+                    <div class="exercise-card-actions" aria-label="Ação do bloco físico">
+                      <button class="btn-primary" type="button" data-page="treinos">Começar bloco</button>
+                    </div>
+                  </article>
+                `).join('')}
+              </div>
+            </section>
           `).join('')}
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h3>Mobilidade antes do treino</h3>
-            <p class="panel-subtitle">Preparacao curta para executar antes do bloco fisico ou antes de treino tecnico mais intenso.</p>
-          </div>
+      <details class="panel mobility-prep-panel">
+        <summary>
+          <span>Recuperação depois do treino</span>
+          <small>3 passos simples</small>
+        </summary>
+        <div class="panel-body mobility-list">
+          ${recoverySteps.map(([area, drill]) => `
+            <article class="mobility-card">
+              <div><strong>${ptText(area)}</strong><span>pós-treino</span></div>
+              <p>${ptText(drill)}</p>
+            </article>
+          `).join('')}
         </div>
+      </details>
+
+      <details class="panel mobility-prep-panel">
+        <summary>
+          <span>Mobilidade rápida antes do treino</span>
+          <small>${mobilityPrep.length} opções</small>
+        </summary>
         <div class="panel-body mobility-list">
           ${mobilityPrep.map(([area, drill, dose, reason]) => `
             <article class="mobility-card">
               <div><strong>${area}</strong><span>${dose}</span></div>
-              <p>${drill}</p>
-              <small>${reason}</small>
+              <p>${ptText(drill)}</p>
+              <small>${ptText(reason)}</small>
             </article>
           `).join('')}
         </div>
-      </section>
+      </details>
     </div>
   `);
 }
@@ -2133,13 +3311,13 @@ function renderPositionGuidePage() {
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Posicoes do volei</h3>
-            <p class="panel-subtitle">Cada aba mostra a decisao principal, os indicadores e as evidencias que fazem sentido para a funcao.</p>
+            <h3>Posições do vôlei</h3>
+            <p class="panel-subtitle">Cada aba mostra a decisão principal, os indicadores e as evidências que fazem sentido para a função.</p>
           </div>
-          <span class="pill active">${positionDecisionGuides.length} funcoes</span>
+          <span class="pill active">${positionDecisionGuides.length} funções</span>
         </div>
         <div class="panel-body">
-          <div class="position-tab-strip" role="tablist" aria-label="Escolher posicao">
+          <div class="position-tab-strip" role="tablist" aria-label="Escolher posição">
             ${positionDecisionGuides.map((item) => {
               const name = positionContents.find((position) => position.id === item.id)?.name || item.id;
               return `
@@ -2161,7 +3339,7 @@ function renderPositionGuidePage() {
             <article class="position-guide-main">
               <div class="position-guide-heading">
                 <div>
-                  <p class="metric-label">Funcao em quadra</p>
+                  <p class="metric-label">Função em quadra</p>
                   <h4>${positionName}</h4>
                 </div>
                 <span class="position-code">${guide.shortName}</span>
@@ -2181,7 +3359,7 @@ function renderPositionGuidePage() {
 
             <aside class="position-decision-stack">
               <article class="decision-card good">
-                <span class="metric-label">Melhor decisao</span>
+                <span class="metric-label">Melhor decisão</span>
                 <p>${guide.primaryDecision}</p>
               </article>
               <article class="decision-card caution">
@@ -2195,11 +3373,11 @@ function renderPositionGuidePage() {
 
       <section class="position-guide-columns">
         <article class="panel">
-          <div class="panel-header"><div><h3>Treino por estilo</h3><p class="panel-subtitle">A mesma posicao precisa de tecnica, leitura e fisico.</p></div></div>
+          <div class="panel-header"><div><h3>Treino por estilo</h3><p class="panel-subtitle">A mesma posição precisa de técnica, leitura e físico.</p></div></div>
           <div class="panel-body position-training-cards">
             ${guide.trainingTabs.map(([label, focus, drill]) => `
               <article class="position-training-card">
-                <span class="tag">${label}</span>
+                <span class="tag">${displayLabel(label)}</span>
                 <h4>${focus}</h4>
                 <p>${drill}</p>
               </article>
@@ -2211,7 +3389,7 @@ function renderPositionGuidePage() {
           <div class="panel-header"><div><h3>Fundamentos e indicadores</h3><p class="panel-subtitle">O que medir primeiro nos registros manuais.</p></div></div>
           <div class="panel-body stack">
             <div class="position-chip-list">
-              ${guide.keyFundamentals.map((fundamental) => `<span>${fundamental}</span>`).join('')}
+              ${guide.keyFundamentals.map((fundamental) => `<span>${displayLabel(fundamental)}</span>`).join('')}
             </div>
             <div class="content-list compact">
               ${guide.indicators.map((indicator) => `<p>${indicator}</p>`).join('')}
@@ -2223,28 +3401,26 @@ function renderPositionGuidePage() {
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Exercicios especificos em casa</h3>
-            <p class="panel-subtitle">Blocos adaptados para treinar a funcao sem rede, sem equipe e com material simples.</p>
+            <h3>Exercícios específicos em casa</h3>
+            <p class="panel-subtitle">Blocos adaptados para treinar a função sem rede, sem equipe e com material simples.</p>
           </div>
-          <span class="pill active">${positionExercises.length} da posicao</span>
+          <span class="pill active">${exerciseCountLabel(positionExercises.length)} da posição</span>
         </div>
         <div class="panel-body position-home-exercise-grid">
           ${positionExercises.map((exercise) => `
             <article>
               <div class="exercise-card-top">
-                <span class="tag">${exercise.fundamental}</span>
+                <span class="tag">${displayLabel(exercise.fundamental)}</span>
                 <span class="metric-label">${exercise.duration}</span>
               </div>
               <h4>${exercise.title}</h4>
-              <p>${exercise.objective}</p>
-              <div class="exercise-detail">
-                <span class="metric-label">Como fazer em casa</span>
-                <p>${exercise.setup}</p>
-              </div>
-              <div class="exercise-metric">
-                <span class="metric-label">Metrica</span>
-                <p>${exercise.metric}</p>
-              </div>
+              ${exercisePracticeMarkup(exercise)}
+              ${exerciseMoreDetailsMarkup([
+                { label: 'Objetivo', value: exercise.objective },
+                { label: 'Material', value: exercise.materials },
+                { label: 'Variações', value: exercise.variations || [] },
+                { label: 'Métrica', value: exercise.metric },
+              ])}
             </article>
           `).join('')}
         </div>
@@ -2253,13 +3429,13 @@ function renderPositionGuidePage() {
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Evidencias para relatorio</h3>
-            <p class="panel-subtitle">Detalhes observaveis para transformar treino em conclusao util.</p>
+            <h3>Evidências para relatório</h3>
+            <p class="panel-subtitle">Detalhes observáveis para transformar treino em conclusão útil.</p>
           </div>
-          <button class="btn-primary" type="button" data-page="exercicios">${selectedExerciseCount} exercicios</button>
+          <button class="btn-primary" type="button" data-page="exercicios">${exerciseCountLabel(selectedExerciseCount)}</button>
         </div>
         <div class="panel-body position-evidence-grid">
-          ${guide.evidence.map((item) => `<article><span class="tag">evidencia</span><p>${item}</p></article>`).join('')}
+          ${guide.evidence.map((item) => `<article><span class="tag">evidência</span><p>${item}</p></article>`).join('')}
         </div>
       </section>
     </div>
@@ -2276,62 +3452,68 @@ function renderReportsPage() {
   const reportFundamentals = currentPosition?.fundamentals || fundamentals.map((item) => item.name);
   const hasDraft = [reportNote, reportPositive, reportCorrection, reportEvidence, reportNext].some(Boolean);
   const reportExerciseOptions = positionExercises;
+  const progressSteps = [
+    ['Treinou', 'Escolha fundamento e exercício feito.'],
+    ['Mediu', 'Registre uma evidência simples do treino.'],
+    ['Evoluiu', 'Defina a correção e o próximo treino.'],
+  ];
   renderShell(`
     <div class="stack">
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Ciclo de evidencia para ${currentPosition?.name || 'sua posicao'}</h3>
-            <p class="panel-subtitle">Feche o treino individual com fundamento, criterio e proxima correcao.</p>
+            <h3>Registre seu progresso</h3>
+            <p class="panel-subtitle">Guarde o que treinou, o que melhorou e qual será o próximo passo.</p>
           </div>
-          <span class="pill active">manual</span>
+          <span class="pill active">${currentPosition?.name || 'sua posição'}</span>
         </div>
         <div class="panel-body evidence-strip">
-          <div class="evidence-step"><strong>Treino</strong><span>O que foi feito e por quanto tempo.</span></div>
-          <div class="evidence-step"><strong>Evidencia</strong><span>O que voce mediu ou observou.</span></div>
-          <div class="evidence-step"><strong>Correcao</strong><span>Uma prioridade tecnica clara.</span></div>
-          <div class="evidence-step"><strong>Evolucao</strong><span>Proxima acao comparavel.</span></div>
+          ${progressSteps.map(([title, detail]) => `<div class="evidence-step"><strong>${ptText(title)}</strong><span>${ptText(detail)}</span></div>`).join('')}
         </div>
       </section>
 
       <div class="form-grid">
         <section class="panel">
-          <div class="panel-header"><h3>Relatorio individual</h3><button class="btn-primary" id="save-report">Salvar evidencia</button></div>
+          <div class="panel-header"><h3>Registro rápido</h3><button class="btn-primary" id="save-report">Salvar progresso</button></div>
           <div class="panel-body stack">
             <div class="exercise-meta-grid">
               <label>
                 <span class="metric-label">Fundamento</span>
                 <select id="report-fundamental">
-                  ${reportFundamentals.map((name) => `<option value="${name}" ${reportFundamental === name ? 'selected' : ''}>${name}</option>`).join('')}
+                  ${reportFundamentals.map((name) => `<option value="${name}" ${reportFundamental === name ? 'selected' : ''}>${displayLabel(name)}</option>`).join('')}
                 </select>
               </label>
               <label>
-                <span class="metric-label">Exercicio em casa</span>
+                <span class="metric-label">Exercício em casa</span>
                 <select id="report-exercise">
                   ${reportExerciseOptions.map((exercise) => `<option value="${exercise.title}" ${reportExercise === exercise.title ? 'selected' : ''}>${exercise.title}</option>`).join('')}
                 </select>
               </label>
             </div>
-            <label><span class="metric-label">Resumo do treino</span><textarea id="report-note">${reportNote}</textarea></label>
-            <label><span class="metric-label">Evidencia medida</span><textarea id="report-evidence" placeholder="Ex.: 18 acertos no alvo em 30 tentativas; perdi controle nas bolas mais baixas.">${reportEvidence}</textarea></label>
+            <label><span class="metric-label">Evidência do treino</span><textarea id="report-evidence" placeholder="Ex.: 18 acertos no alvo em 30 tentativas; perdi controle nas bolas mais baixas.">${reportEvidence}</textarea></label>
             <div class="exercise-meta-grid">
-              <label><span class="metric-label">Pontos positivos</span><textarea id="report-positive">${reportPositive}</textarea></label>
-              <label><span class="metric-label">Correcao principal</span><textarea id="report-correction">${reportCorrection}</textarea></label>
+              <label><span class="metric-label">O que melhorou</span><textarea id="report-positive" placeholder="Ex.: plataforma mais firme e menos bolas para o lado.">${reportPositive}</textarea></label>
+              <label><span class="metric-label">Correção para focar</span><textarea id="report-correction" placeholder="Ex.: ajustar base antes do contato.">${reportCorrection}</textarea></label>
             </div>
-            <label><span class="metric-label">Proximo treino</span><textarea id="report-next" placeholder="Ex.: repetir manchete na parede com alvo mais baixo e filmar 3 series.">${reportNext}</textarea></label>
+            <label><span class="metric-label">Próximo treino</span><textarea id="report-next" placeholder="Ex.: repetir manchete na parede com alvo mais baixo e filmar 3 séries.">${reportNext}</textarea></label>
+            <details class="report-extra-details">
+              <summary>Observação extra</summary>
+              <label><span class="metric-label">Resumo livre</span><textarea id="report-note" placeholder="Anote contexto, sensação ou detalhe que não coube nos campos acima.">${reportNote}</textarea></label>
+            </details>
           </div>
         </section>
         <section class="panel">
-          <div class="panel-header"><h3>Rascunho salvo</h3></div>
+          <div class="panel-header"><h3>Último registro</h3></div>
           <div class="panel-body stack">
             ${hasDraft ? `
               <article class="report-card">
-                <h4>${reportFundamental} - ${reportExercise}</h4>
-                <p>${reportEvidence || reportNote || 'Evidencia ainda sem texto.'}</p>
-                <span class="badge">Rascunho local</span>
+                <h4>${ptText(displayLabel(reportFundamental))} - ${ptText(reportExercise)}</h4>
+                <p>${reportEvidence || reportNote || 'Evidência ainda sem texto.'}</p>
+                ${reportPositive ? `<p><strong>O que melhorou:</strong> ${reportPositive}</p>` : ''}
+                <span class="badge">Salvo neste navegador</span>
               </article>
-              <article class="note-box"><p><strong style="color:white">Proxima correcao</strong></p><p>${reportCorrection || 'Defina uma correcao principal para o proximo treino.'}</p></article>
-            ` : '<article class="report-card"><h4>Nenhum relatorio</h4><p>Crie seu primeiro registro quando terminar um exercicio em casa.</p></article>'}
+              <article class="note-box"><p><strong style="color:white">Próximo treino</strong></p><p>${reportNext || reportCorrection || 'Defina uma ação simples para comparar na próxima sessão.'}</p></article>
+            ` : '<article class="report-card"><h4>Nenhum progresso salvo</h4><p>Salve um registro curto quando terminar um exercício em casa.</p></article>'}
           </div>
         </section>
       </div>
@@ -2359,9 +3541,9 @@ function renderReportsPage() {
 function renderStylesPage() {
   const currentPosition = getSelectedPosition();
   const choiceGuide = [
-    ['Leitura', 'Tatico', currentPosition?.gameReading[0] || 'Marque decisao, zona e proxima acao.'],
-    ['Corpo', 'Fisico', currentPosition?.physicalFocus[0] || 'Use toalha, fita no chao e controle de aterrissagem.'],
-    ['Mental', 'Tecnico', currentPosition?.mentalFocus[0] || 'Escolha um fundamento e uma metrica simples.'],
+    ['Leitura', 'Tático', currentPosition?.gameReading[0] || 'Marque decisão, zona e próxima ação.'],
+    ['Corpo', 'Físico', currentPosition?.physicalFocus[0] || 'Use toalha, fita no chão e controle de aterrissagem.'],
+    ['Mental', 'Técnico', currentPosition?.mentalFocus[0] || 'Escolha um fundamento e uma métrica simples.'],
   ];
   renderShell(`
     <div class="content-inner stack">
@@ -2369,7 +3551,7 @@ function renderStylesPage() {
         <div class="panel-header">
           <div>
             <h3>Estilos de treino em casa</h3>
-            <p class="panel-subtitle">Escolha o tipo de sessao pelo objetivo do dia e pela posicao ${currentPosition?.name || 'selecionada'}.</p>
+            <p class="panel-subtitle">Escolha o tipo de sessão pelo objetivo do dia e pela posição ${currentPosition?.name || 'selecionada'}.</p>
           </div>
           <button class="btn-primary" data-page="treinos">Montar plano</button>
         </div>
@@ -2378,7 +3560,7 @@ function renderStylesPage() {
             <article class="style-choice-card">
               <span class="metric-label">${context}</span>
               <strong>${style}</strong>
-              <p>${detail}</p>
+              <p>${ptText(detail)}</p>
             </article>
           `).join('')}
         </div>
@@ -2388,33 +3570,33 @@ function renderStylesPage() {
         ${styleGuides.map((guide) => `
           <article class="style-route-card">
             <div class="style-route-top">
-              <span class="tag">${guide.name}</span>
-              <span class="metric-label">${guide.dose}</span>
+              <span class="tag">${displayLabel(guide.name)}</span>
+              <span class="metric-label">${ptText(guide.dose)}</span>
             </div>
-            <h3>${guide.focus}</h3>
-            <p>${guide.activities}</p>
+            <h3>${ptText(guide.focus)}</h3>
+            <p>${ptText(guide.activities)}</p>
             <div class="style-evidence-grid">
-              <div><span class="metric-label">Evidencia</span><strong>${guide.evidence}</strong></div>
-              <div><span class="metric-label">Cuidado</span><strong>${guide.caution}</strong></div>
-              <div><span class="metric-label">Exercicio base</span><strong>${guide.exercise}</strong></div>
-              <div><span class="metric-label">Metrica</span><strong>${guide.metric}</strong></div>
+              <div><span class="metric-label">Evidência</span><strong>${ptText(guide.evidence)}</strong></div>
+              <div><span class="metric-label">Cuidado</span><strong>${ptText(guide.caution)}</strong></div>
+              <div><span class="metric-label">Exercício base</span><strong>${ptText(guide.exercise)}</strong></div>
+              <div><span class="metric-label">Métrica</span><strong>${ptText(guide.metric)}</strong></div>
             </div>
           </article>
         `).join('')}
       </section>
 
-      <section class="position-detail-grid" aria-label="Focos especificos da posicao">
+      <section class="position-detail-grid" aria-label="Focos específicos da posição">
         <article class="panel">
-          <div class="panel-header"><div><h3>Leitura de jogo</h3><p class="panel-subtitle">${currentPosition?.name || 'Posicao atual'}</p></div></div>
-          <div class="panel-body content-list">${(currentPosition?.gameReading || []).map((item) => `<p>${item}</p>`).join('')}</div>
+          <div class="panel-header"><div><h3>Leitura de jogo</h3><p class="panel-subtitle">${currentPosition?.name || 'Posição atual'}</p></div></div>
+          <div class="panel-body content-list">${(currentPosition?.gameReading || []).map((item) => `<p>${ptText(item)}</p>`).join('')}</div>
         </article>
         <article class="panel">
-          <div class="panel-header"><div><h3>Foco fisico</h3><p class="panel-subtitle">Preparacao para treinar em casa</p></div></div>
-          <div class="panel-body content-list">${(currentPosition?.physicalFocus || []).map((item) => `<p>${item}</p>`).join('')}</div>
+          <div class="panel-header"><div><h3>Foco físico</h3><p class="panel-subtitle">Preparação para treinar em casa</p></div></div>
+          <div class="panel-body content-list">${(currentPosition?.physicalFocus || []).map((item) => `<p>${ptText(item)}</p>`).join('')}</div>
         </article>
         <article class="panel">
-          <div class="panel-header"><div><h3>Foco mental</h3><p class="panel-subtitle">Criterios para decidir melhor</p></div></div>
-          <div class="panel-body content-list">${(currentPosition?.mentalFocus || []).map((item) => `<p>${item}</p>`).join('')}</div>
+          <div class="panel-header"><div><h3>Foco mental</h3><p class="panel-subtitle">Critérios para decidir melhor</p></div></div>
+          <div class="panel-body content-list">${(currentPosition?.mentalFocus || []).map((item) => `<p>${ptText(item)}</p>`).join('')}</div>
         </article>
       </section>
     </div>
@@ -2424,165 +3606,205 @@ function renderStylesPage() {
 function renderExerciseLibraryPage() {
   const currentPosition = getSelectedPosition();
   const positionExercises = [...(currentPosition?.homeExercises || []), ...sharedServeDefenseFocus.exercises];
-  const options = ['Todos', ...new Set(positionExercises.map((item) => item.fundamental))];
-  if (!options.includes(selectedFundamental)) selectedFundamental = 'Todos';
-  const visible = selectedFundamental === 'Todos'
-    ? positionExercises
-    : positionExercises.filter((exercise) => exercise.fundamental === selectedFundamental);
+  const fundamentalOptions = ['Todos', ...new Set(positionExercises.map((item) => item.fundamental))];
+  const timeOptions = ['Todos', '5 minutos', '10 minutos', '15 minutos'];
+  const difficultyOptions = ['Todos', 'iniciante', 'intermediário', 'avançado'];
+  const materialOptions = ['Todos', ...new Set(positionExercises.flatMap((exercise) => exerciseMaterialTags(exercise)))];
+  if (!fundamentalOptions.includes(selectedFundamental)) selectedFundamental = 'Todos';
+  if (!timeOptions.includes(selectedExerciseTime)) selectedExerciseTime = 'Todos';
+  if (!difficultyOptions.includes(selectedExerciseDifficulty)) selectedExerciseDifficulty = 'Todos';
+  if (!materialOptions.includes(selectedExerciseMaterial)) selectedExerciseMaterial = 'Todos';
+  const visible = positionExercises.filter(exerciseMatchesFilters);
+  const emptyMessage = visible.length
+    ? ''
+    : '<article class="note-box exercise-empty-state"><p><strong style="color:white">Nenhum exercício encontrado</strong></p><p>Remova um filtro ou escolha outro material. A biblioteca evita mostrar tarefas repetidas quando elas não combinam com a seleção.</p><button class="btn-primary" type="button" data-clear-exercise-filters>Limpar filtros</button></article>';
 
   renderShell(`
     <div class="stack">
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Exercicios em casa para ${currentPosition?.name || 'sua posicao'}</h3>
-            <p class="panel-subtitle">Apenas exercicios individuais, possiveis dentro de casa, filtrados pela posicao escolhida.</p>
+            <h3>Exercícios em casa para ${currentPosition?.name || 'sua posição'}</h3>
+            <p class="panel-subtitle">Escolha um fundamento, veja como executar e comece por uma ficha curta de técnica.</p>
           </div>
-          <span class="pill active">${visible.length} exercicios</span>
+          <span class="pill active">${exerciseCountLabel(visible.length)}</span>
         </div>
         <div class="panel-body">
-          <div class="filters library-filters" role="group" aria-label="Filtrar exercicios por fundamento">
-            ${options.map((fundamental) => `<button data-fundamental="${fundamental}" class="${selectedFundamental === fundamental ? 'active' : ''}" aria-pressed="${selectedFundamental === fundamental}">${fundamental}</button>`).join('')}
+          <div class="exercise-filter-panel library-filters">
+            ${renderExerciseFilterGroup('Fundamento', 'fundamental', fundamentalOptions, selectedFundamental)}
+            ${renderExerciseFilterGroup('Tempo', 'time', timeOptions, selectedExerciseTime)}
           </div>
-          <article class="note-box position-common-note">
-            <p><strong style="color:white">${sharedServeDefenseFocus.title}</strong></p>
-            <p>${sharedServeDefenseFocus.description}</p>
-          </article>
-          <article class="note-box position-common-note">
-            <p><strong style="color:white">Ajuste pelo seu perfil</strong></p>
-            <p>${profileSafetyNote()}</p>
-          </article>
+          <details class="exercise-filter-more">
+            <summary>
+              <span>Mais filtros</span>
+              <small>Dificuldade e material</small>
+            </summary>
+            <div class="exercise-filter-panel">
+              ${renderExerciseFilterGroup('Dificuldade', 'difficulty', difficultyOptions, selectedExerciseDifficulty)}
+              ${renderExerciseFilterGroup('Material necessário', 'material', materialOptions, selectedExerciseMaterial)}
+            </div>
+          </details>
         </div>
       </section>
 
       <section class="exercise-library-grid">
-        ${visible.map((exercise) => `
+        ${emptyMessage}
+        ${visible.map((exercise) => {
+          const optimization = exerciseOptimizationNote(exercise);
+          return `
           <article class="exercise-library-card">
             <div class="exercise-card-top">
-              <span class="tag">${exercise.fundamental}</span>
-              <span class="metric-label">${exercise.duration}</span>
+              <div class="exercise-tag-list">
+                ${[exercise.fundamental, exerciseDifficulty(exercise)].filter(Boolean).map((tag) => `<span class="tag">${displayLabel(tag)}</span>`).join('')}
+              </div>
+              <span class="metric-label">${ptText(exercise.duration)}</span>
             </div>
-            <h3>${exercise.title}</h3>
-            <p class="exercise-objective">${exercise.objective}</p>
-            <div class="exercise-meta-grid">
-              <div><span class="metric-label">Ambiente</span><strong>${exercise.environment}</strong></div>
-              <div><span class="metric-label">Material</span><strong>${exercise.materials}</strong></div>
-            </div>
-            <div class="exercise-detail">
-              <span class="metric-label">Como fazer em casa</span>
-              <p>${exercise.setup}</p>
-            </div>
-            <div class="exercise-detail">
-              <span class="metric-label">Variacoes</span>
-              <ul>${exercise.variations.map((variation) => `<li>${variation}</li>`).join('')}</ul>
-            </div>
-            <div class="exercise-metric">
-              <span class="metric-label">Metrica</span>
-              <p>${exercise.metric}</p>
+            <h3>${ptText(exercise.title)}</h3>
+            <p class="exercise-card-objective">${ptText(exercise.objective)}</p>
+            ${exercisePracticeMarkup(exercise)}
+            ${exerciseMoreDetailsMarkup([
+              { label: 'Por que fazer', value: exerciseBenefitForPosition(exercise, currentPosition) },
+              { label: 'Critério de melhora', value: optimization.criterion },
+              { label: 'Material', value: exercise.materials },
+              { label: 'Variações', value: exercise.variations || [] },
+              { label: 'Métrica', value: exercise.metric },
+            ])}
+            <div class="exercise-card-actions" aria-label="Ações principais do exercício">
+              <button class="btn-primary" type="button" data-page="treinos">Começar treino</button>
             </div>
           </article>
-        `).join('')}
+        `; }).join('')}
       </section>
+
+      <details class="exercise-support-details">
+        <summary>
+          <span>Orientações rápidas</span>
+          <small>Saque, defesa e cuidado de treino</small>
+        </summary>
+        <div class="exercise-support-grid">
+          <article>
+            <strong>Ajuste pelo seu perfil</strong>
+            <p>${profileSafetyNote()}</p>
+          </article>
+        </div>
+      </details>
     </div>
   `);
 
-  document.querySelectorAll('[data-fundamental]').forEach((button) => {
-    button.addEventListener('click', () => setFundamental(button.dataset.fundamental));
+  document.querySelectorAll('[data-exercise-filter]').forEach((button) => {
+    button.addEventListener('click', () => setExerciseFilter(button.dataset.exerciseFilter, button.dataset.exerciseValue));
+  });
+  document.querySelector('[data-clear-exercise-filters]')?.addEventListener('click', () => {
+    resetExerciseFilters();
+    render();
   });
 }
 
 function renderIndividualPage() {
   const currentPosition = getSelectedPosition();
+  const recommendedCorrection = correctionPlaybook.find((item) => item.priority === 'Alta') || correctionPlaybook[0];
+  const otherCorrections = correctionPlaybook.filter((item) => item !== recommendedCorrection);
   const emptyCorrections = correctionPlaybook.slice(0, 3);
   const decisionSteps = [
-    ['Ver', 'Qual detalhe tecnico apareceu no treino ou video?'],
-    ['Escolher', 'Corrija uma coisa por vez, com prioridade clara.'],
-    ['Medir', 'Defina uma metrica que caiba em casa.'],
+    ['Ver', 'Identifique o detalhe que mais atrapalhou o fundamento.'],
+    ['Corrigir', 'Escolha uma meta pequena para o próximo treino.'],
+    ['Repetir', 'Use um exercício simples e acompanhe a melhora.'],
   ];
   renderShell(`
     <div class="content-inner stack">
-      <section class="panel">
+      <section class="panel correction-hero-panel">
         <div class="panel-header">
           <div>
-            <h3>Correcoes individuais para ${currentPosition?.name || 'sua posicao'}</h3>
-            <p class="panel-subtitle">Transforme erro observado em uma prioridade pequena, treinavel e mensuravel.</p>
+            <h3>Receba correções práticas para melhorar seu jogo</h3>
+            <p class="panel-subtitle">Veja uma meta recomendada, treine o exercício indicado e registre a evolução.</p>
           </div>
-          <button class="btn-primary" data-page="relatorios">Registrar evidencia</button>
+          <button class="btn-ghost" data-page="relatorios">Registrar progresso</button>
         </div>
-        <div class="panel-body correction-flow" aria-label="Fluxo para escolher uma correcao">
-          ${decisionSteps.map(([title, detail], index) => `
-            <article class="correction-flow-step">
-              <span class="session-step-number">${index + 1}</span>
-              <div><h4>${title}</h4><p>${detail}</p></div>
-            </article>
-          `).join('')}
+        <div class="panel-body correction-focus-layout" aria-label="Correção recomendada">
+          <article class="correction-recommended-card">
+            <div class="correction-card-top">
+              <span class="tag">Correção recomendada</span>
+              <div class="correction-badges">${badge(recommendedCorrection.priority)}<span class="badge">${recommendedCorrection.status}</span></div>
+            </div>
+            <h3>${ptText(recommendedCorrection.correction)}</h3>
+            <p>${ptText(recommendedCorrection.signal)}</p>
+            <div class="correction-action-row">
+              <button class="btn-primary" type="button" data-page="exercicios">Treinar esta correção</button>
+              <button class="btn-ghost" type="button" data-page="relatorios">Registrar progresso</button>
+            </div>
+            <div class="correction-meta-grid">
+              <div><span class="metric-label">Exercício indicado</span><strong>${ptText(recommendedCorrection.drill)}</strong></div>
+              <div><span class="metric-label">Meta da semana</span><strong>${ptText(recommendedCorrection.metric)}</strong></div>
+            </div>
+            <p class="correction-next-action"><strong>Próximo treino:</strong> ${ptText(recommendedCorrection.next)}</p>
+          </article>
+          <aside class="correction-use-panel" aria-label="Como usar as correções">
+            <div>
+              <span class="metric-label">Como usar</span>
+              <div class="correction-flow-compact">
+                ${decisionSteps.map(([title, detail], index) => `
+                  <article>
+                    <span class="session-step-number">${index + 1}</span>
+                    <div><h4>${title}</h4><p>${detail}</p></div>
+                  </article>
+                `).join('')}
+              </div>
+            </div>
+            <div class="correction-position-summary">
+              <span class="metric-label">Foco para ${currentPosition?.name || 'sua posição'}</span>
+              <p>${ptText(currentPosition?.description || 'Escolha uma posição para receber metas ligadas ao seu jogo.')}</p>
+              <div class="position-chip-list">${(currentPosition?.fundamentals || []).slice(0, 4).map((item) => `<span>${ptText(displayLabel(item))}</span>`).join('')}</div>
+            </div>
+          </aside>
         </div>
       </section>
 
-      <section class="position-profile-panel panel">
-        <div class="panel-header">
+      <section class="correction-board-section" aria-label="Outras correções sugeridas">
+        <div class="correction-board-header">
           <div>
-            <h3>Ficha da posicao</h3>
-            <p class="panel-subtitle">${currentPosition?.description || ''}</p>
+            <h3>Outras metas para evoluir</h3>
+            <p>Escolha uma meta menor quando o foco principal já estiver controlado.</p>
           </div>
-          <span class="pill active">dados zerados</span>
+          <span class="pill active">${otherCorrections.length} metas</span>
         </div>
-        <div class="panel-body position-profile-grid">
-          <article>
-            <span class="metric-label">Fundamentos principais</span>
-            <div class="content-list compact">${(currentPosition?.fundamentals || []).map((item) => `<p>${item}</p>`).join('')}</div>
-          </article>
-          <article>
-            <span class="metric-label">Leitura de jogo</span>
-            <div class="content-list compact">${(currentPosition?.gameReading || []).map((item) => `<p>${item}</p>`).join('')}</div>
-          </article>
-          <article>
-            <span class="metric-label">Foco fisico</span>
-            <div class="content-list compact">${(currentPosition?.physicalFocus || []).map((item) => `<p>${item}</p>`).join('')}</div>
-          </article>
-          <article>
-            <span class="metric-label">Foco mental</span>
-            <div class="content-list compact">${(currentPosition?.mentalFocus || []).map((item) => `<p>${item}</p>`).join('')}</div>
-          </article>
-        </div>
-      </section>
-
-      <section class="correction-board-grid" aria-label="Playbook de correcoes sugeridas">
-        ${correctionPlaybook.map((item) => `
+        <div class="correction-board-grid">
+        ${otherCorrections.map((item) => `
           <article class="correction-card">
             <div class="correction-card-top">
-              <span class="tag">${item.fundamental}</span>
+              <span class="tag">${displayLabel(item.fundamental)}</span>
               <div class="correction-badges">${badge(item.priority)}<span class="badge">${item.status}</span></div>
             </div>
-            <h3>${item.correction}</h3>
-            <p>${item.signal}</p>
+            <h3>${ptText(item.correction)}</h3>
+            <p>${ptText(item.signal)}</p>
             <div class="correction-meta-grid">
-              <div><span class="metric-label">Observado em</span><strong>${item.observed}</strong></div>
-              <div><span class="metric-label">Exercicio</span><strong>${item.drill}</strong></div>
-              <div><span class="metric-label">Meta</span><strong>${item.metric}</strong></div>
-              <div><span class="metric-label">Proxima repeticao</span><strong>${item.next}</strong></div>
+              <div><span class="metric-label">Exercício indicado</span><strong>${ptText(item.drill)}</strong></div>
+              <div><span class="metric-label">Meta da semana</span><strong>${ptText(item.metric)}</strong></div>
             </div>
+            <p class="correction-next-action"><strong>Próximo treino:</strong> ${ptText(item.next)}</p>
+            <details class="correction-detail">
+              <summary>Ver origem da correção</summary>
+              <p>Observado em: ${ptText(item.observed)}.</p>
+            </details>
+            <button class="btn-primary" type="button" data-page="exercicios">Treinar correção</button>
           </article>
         `).join('')}
+        </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h3>Historico real</h3>
-            <p class="panel-subtitle">Ainda nao ha correcoes salvas. Os cards acima sao modelos para orientar o primeiro registro.</p>
-          </div>
-          <button class="btn-ghost" data-page="exercicios">Abrir exercicios</button>
-        </div>
+      <details class="panel correction-history-panel">
+        <summary>
+          <span>Correções salvas</span>
+          <small>Ainda vazio</small>
+        </summary>
         <div class="panel-body empty-corrections-grid">
           ${emptyCorrections.map((item) => `
             <article class="note-box">
-              <p><strong style="color:white">${item.fundamental}</strong></p>
-              <p>Modelo: ${item.correction}</p>
+              <p><strong style="color:white">${ptText(displayLabel(item.fundamental))}</strong></p>
+              <p>Modelo: ${ptText(item.correction)}</p>
             </article>
           `).join('')}
         </div>
-      </section>
+      </details>
     </div>
   `);
 }
@@ -2591,17 +3813,17 @@ function renderIndicatorsPage() {
   const currentPosition = getSelectedPosition();
   const positionFundamentals = currentPosition?.fundamentals || fundamentals.map((item) => item.name);
   const criteria = [
-    ['Controle', 'A bola chega no alvo combinado?', 'Conte acertos e perdas por serie.'],
-    ['Tecnica', 'O gesto manteve base, braco ou plataforma?', 'Compare um detalhe por treino.'],
-    ['Consistencia', 'A execucao se repete sem perder qualidade?', 'Use a melhor sequencia da sessao.'],
+    ['Controle', 'A bola chega no alvo combinado?', 'Conte acertos e perdas por série.'],
+    ['Técnica', 'O gesto manteve base, braço ou plataforma?', 'Compare um detalhe por treino.'],
+    ['Consistência', 'A execução se repete sem perder qualidade?', 'Use a melhor sequência da sessão.'],
   ];
   renderShell(`
     <div class="content-inner stack">
       <section class="panel evolution-hero">
         <div class="panel-header">
           <div>
-            <h3>Evolucao por criterio</h3>
-            <p class="panel-subtitle">Acompanhe ${currentPosition?.name || 'sua posicao'} pelo que da para observar, medir e repetir.</p>
+            <h3>Evolução por critério</h3>
+            <p class="panel-subtitle">Acompanhe ${currentPosition?.name || 'sua posição'} pelo que dá para observar, medir e repetir.</p>
           </div>
           <button class="btn-primary" data-page="relatorios">Salvar novo registro</button>
         </div>
@@ -2620,23 +3842,23 @@ function renderIndicatorsPage() {
       <section class="panel">
         <div class="panel-header">
           <div>
-            <h3>Tabela de fundamentos da posicao</h3>
-            <p class="panel-subtitle">Notas comecam zeradas ate existirem registros manuais comparaveis.</p>
+            <h3>Tabela de fundamentos da posição</h3>
+            <p class="panel-subtitle">Notas começam zeradas até existirem registros manuais comparáveis.</p>
           </div>
         </div>
-        <div class="panel-body fund-grid">${positionFundamentals.map((name, index) => `<article class="fund-card"><div class="fund-top"><h4>${name}</h4><strong>0.0</strong></div><span class="metric-label">0 registros manuais</span><div class="bar"><span style="width:0%;background:${fundamentals[index % fundamentals.length]?.color || 'var(--teal)'}"></span></div><p class="fund-hint">Registre evidencia para atualizar este fundamento.</p></article>`).join('')}</div>
+        <div class="panel-body fund-grid">${positionFundamentals.map((name, index) => `<article class="fund-card"><div class="fund-top"><h4>${displayLabel(name)}</h4><strong>0.0</strong></div><span class="metric-label">0 registros manuais</span><div class="bar"><span style="width:0%;background:${fundamentals[index % fundamentals.length]?.color || 'var(--teal)'}"></span></div><p class="fund-hint">Registre evidência para atualizar este fundamento.</p></article>`).join('')}</div>
       </section>
 
       <section class="panel">
-        <div class="panel-header"><h3>Comparacao por treino</h3></div>
-        <div class="panel-body" style="overflow-x:auto"><table><thead><tr><th class="table-head">Treino</th><th class="table-head">Estilo</th><th class="table-head">Minutos</th><th class="table-head">Qualidade</th><th class="table-head">Carga</th></tr></thead><tbody>${sessions.length ? sessions.map((session) => `<tr><td><strong>${session.title}</strong></td><td>${session.style}</td><td>${session.duration}</td><td class="score">${session.quality.toFixed(1)}</td><td>${badge(session.load)}</td></tr>`).join('') : '<tr><td colspan="5"><strong>Nenhum treino para comparar</strong><br><span class="muted">Os indicadores serao preenchidos apenas com seus dados.</span></td></tr>'}</tbody></table></div>
+        <div class="panel-header"><h3>Comparação por treino</h3></div>
+        <div class="panel-body" style="overflow-x:auto"><table><thead><tr><th class="table-head">Treino</th><th class="table-head">Estilo</th><th class="table-head">Minutos</th><th class="table-head">Qualidade</th><th class="table-head">Carga</th></tr></thead><tbody>${sessions.length ? sessions.map((session) => `<tr><td><strong>${session.title}</strong></td><td>${displayLabel(session.style)}</td><td>${session.duration}</td><td class="score">${session.quality.toFixed(1)}</td><td>${badge(session.load)}</td></tr>`).join('') : '<tr><td colspan="5"><strong>Nenhum treino para comparar</strong><br><span class="muted">Os indicadores serão preenchidos apenas com seus dados.</span></td></tr>'}</tbody></table></div>
       </section>
 
       <section class="panel">
-        <div class="panel-header"><h3>Mapa de referencia em quadra</h3><span class="pill active">apoio visual</span></div>
+        <div class="panel-header"><h3>Mapa de referência em quadra</h3><span class="pill active">apoio visual</span></div>
         <div class="panel-body positioning-grid">
           <div class="court-positioning">
-            <img src="/assets/learning-volleyball-system.png" alt="Quadra usada como referencia visual para posicionamento" />
+            <img src="public/assets/learning-volleyball-system.png" alt="Quadra usada como referência visual para posicionamento" />
             ${[
               ['Z1', 'Saque / defesa direita', 68, 67],
               ['Z2', 'Saida de rede', 62, 38],
@@ -2647,8 +3869,8 @@ function renderIndicatorsPage() {
             ].map(([zone, label, left, top]) => `<span class="court-marker" role="img" aria-label="${zone}, ${label}" style="left:${left}%;top:${top}%"><strong>${zone}</strong><span>${label}</span></span>`).join('')}
           </div>
           <div class="positioning-notes">
-            <article class="note-box"><p><strong style="color:white">Uso no treino</strong></p><p>Use as zonas como linguagem: onde comecou, para onde mirou e qual movimento quer repetir.</p></article>
-            <article class="note-box"><p><strong style="color:white">Dentro de casa</strong></p><p>Adapte a zona para parede, alvo no chao ou deslocamento curto. O criterio vale mais que o tamanho do espaco.</p></article>
+            <article class="note-box"><p><strong style="color:white">Uso no treino</strong></p><p>Use as zonas como linguagem: onde começou, para onde mirou e qual movimento quer repetir.</p></article>
+            <article class="note-box"><p><strong style="color:white">Dentro de casa</strong></p><p>Adapte a zona para parede, alvo no chão ou deslocamento curto. O critério vale mais que o tamanho do espaço.</p></article>
           </div>
         </div>
       </section>
@@ -2661,105 +3883,102 @@ function renderGameReadingPage() {
   const scene = gameReadingScenes.find((item) => item.id === selectedReadingSceneId) || gameReadingScenes[0];
   const answered = Boolean(selectedReadingAnswer);
   const isCorrect = selectedReadingAnswer === scene.answer;
+  const readingFocus = [
+    ['Observe', 'Veja bola, levantador, atacante e espaço vazio antes da ação terminar.'],
+    ['Decida', 'Escolha a resposta mais provável para a sua posição.'],
+    ['Ajuste', 'Compare com a decisão esperada e leve a pista para o treino.'],
+  ];
 
   renderShell(`
     <div class="content-inner stack">
-      <section class="panel game-reading-hero">
-        <div class="game-reading-copy">
-          <h3>Leitura de jogo para ${currentPosition?.name || 'sua posicao'}</h3>
-          <p>${currentPosition?.gameReading?.[0] || 'Treinos para reconhecer padroes antes da bola chegar.'}</p>
-        </div>
-        <div class="game-reading-score">
-          <span class="metric-label">Foco</span>
-          <strong>${currentPosition?.fundamentals?.[0] || 'leitura'}</strong>
-          <p>${currentPosition?.gameReading?.[1] || 'Hoje usamos cenas de exemplo. Depois entram videos curtos com perguntas.'}</p>
-        </div>
-      </section>
-
-      <section class="position-detail-grid" aria-label="Leituras especificas da posicao">
-        ${(currentPosition?.gameReading || []).map((item) => `
-          <article class="panel">
-            <div class="panel-header"><div><h3>Pista da posicao</h3><p class="panel-subtitle">${currentPosition?.name || 'Posicao'}</p></div></div>
-            <div class="panel-body content-list"><p>${item}</p></div>
-          </article>
-        `).join('')}
-      </section>
-
       <div class="form-grid">
         <section class="panel">
           <div class="panel-header">
             <div>
-              <h3>Cena de decisao</h3>
-              <p class="panel-subtitle">Assista ao contexto, leia os sinais e escolha a resposta.</p>
+              <h3>Treine sua tomada de decisão</h3>
+              <p class="panel-subtitle">Leia a cena, escolha a melhor resposta e compare com os sinais da jogada.</p>
             </div>
-            <span class="pill active">${scene.clip}</span>
+            <div class="daily-training-actions">
+              <span class="pill active">${scene.clip}</span>
+              <span class="pill">${ptText(currentPosition?.name || 'Atleta')}</span>
+            </div>
           </div>
           <div class="panel-body game-reading-layout">
-            <div class="simulated-video-frame realistic-scene-frame" aria-label="Clip realista de leitura de jogo">
-              <figure class="reading-photo">
-                <img src="${scene.image}" alt="${scene.imageAlt}" loading="eager">
-                <figcaption>
-                  <span>${scene.angle}</span>
-                  <strong>${scene.fundamental}</strong>
-                </figcaption>
-              </figure>
-              <div class="video-caption">
-                <span>${scene.clip}</span>
-                <strong>${scene.title}</strong>
-              </div>
-            </div>
             <div class="reading-question-card">
               <span class="metric-label">Pergunta</span>
-              <h4>${scene.question}</h4>
+              <h4>${ptText(scene.question)}</h4>
+              <div class="reading-focus-mini" aria-label="Como responder a cena">
+                ${readingFocus.map(([title], index) => `<span>${index + 1}. ${ptText(title)}</span>`).join('')}
+              </div>
               <div class="reading-options">
                 ${scene.options.map((option) => `
                   <button class="${selectedReadingAnswer === option ? 'active' : ''}" data-reading-answer="${option}">
-                    ${option}
+                    ${ptText(option)}
                   </button>
                 `).join('')}
               </div>
               <article class="note-box ${answered ? '' : 'muted-box'}">
-                <p><strong style="color:white">${answered ? (isCorrect ? 'Boa leitura' : 'Revisar leitura') : 'Escolha uma resposta'}</strong></p>
-                <p>${answered ? `Resposta esperada: ${scene.answer}. ${scene.decision}` : 'A resposta aparece aqui para comparar decisao e sinais da jogada.'}</p>
+                <p><strong style="color:white">${answered ? (isCorrect ? 'Boa decisão' : 'Revise os sinais') : 'Escolha uma resposta'}</strong></p>
+                <p>${answered ? `Resposta esperada: ${ptText(scene.answer)}. ${ptText(scene.decision)}` : 'Depois de responder, compare sua decisão com os sinais da jogada.'}</p>
               </article>
+            </div>
+            <div class="simulated-video-frame game-scene-frame" aria-label="Cena de jogo para leitura e tomada de decisão">
+              <figure class="reading-photo">
+                <img src="${scene.image}" alt="${ptText(scene.imageAlt)}" loading="eager">
+                <div class="reading-game-hud" aria-hidden="true">
+                  <span>Cena de jogo</span>
+                  <strong>Decisão</strong>
+                </div>
+                <figcaption>
+                  <span>${ptText(scene.angle)}</span>
+                  <strong>${ptText(scene.fundamental)}</strong>
+                </figcaption>
+              </figure>
+              <div class="video-caption">
+                <span>${scene.clip}</span>
+                <strong>${ptText(scene.title)}</strong>
+              </div>
             </div>
           </div>
         </section>
 
         <aside class="panel">
-          <div class="panel-header"><h3>Cenas realistas</h3><span class="pill active">${gameReadingScenes.length} cenas</span></div>
+          <div class="panel-header"><h3>Cenas estilo jogo</h3><span class="pill active">${gameReadingScenes.length} cenas</span></div>
           <div class="panel-body stack">
             ${gameReadingScenes.map((item) => `
               <button class="reading-scene-button ${item.id === scene.id ? 'active' : ''}" data-reading-scene="${item.id}">
                 <span>${item.clip}</span>
-                <strong>${item.title}</strong>
-                <small>${item.angle}</small>
+                <strong>${ptText(item.title)}</strong>
+                <small>${ptText(item.angle)}</small>
               </button>
             `).join('')}
           </div>
         </aside>
       </div>
 
-      <div class="form-grid">
-        <section class="panel">
-          <div class="panel-header"><div><h3>Sinais para observar</h3><p class="panel-subtitle">O treino e aprender a ver pistas antes da acao terminar.</p></div></div>
+      <details class="panel reading-support-panel">
+        <summary>
+          <span>Sinais para observar</span>
+          <small>${gameReadingPatterns.length} pistas gerais</small>
+        </summary>
+        <div class="reading-support-grid">
           <div class="panel-body pattern-grid">
             ${gameReadingPatterns.map(([title, detail]) => `
               <article class="pattern-card">
-                <h4>${title}</h4>
-                <p>${detail}</p>
+                <h4>${ptText(title)}</h4>
+                <p>${ptText(detail)}</p>
               </article>
             `).join('')}
           </div>
-        </section>
 
-        <aside class="panel">
-          <div class="panel-header"><h3>Pistas desta cena</h3></div>
+          <aside class="scene-cue-panel">
+            <h3>Pistas desta cena</h3>
           <div class="panel-body stack">
-            ${scene.cues.map((cue) => `<div class="action-item"><p><strong style="color:white">${cue}</strong><br>Sinal usado para decidir antes do ataque.</p><span class="tag">pista</span></div>`).join('')}
+            ${scene.cues.map((cue) => `<div class="action-item"><p><strong style="color:white">${ptText(cue)}</strong><br>Sinal usado para decidir antes do ataque.</p><span class="tag">pista</span></div>`).join('')}
           </div>
-        </aside>
-      </div>
+          </aside>
+        </div>
+      </details>
     </div>
   `);
 
@@ -2785,7 +4004,9 @@ function renderGameReadingPage() {
 const videoEvidenceStorageKey = 'isa.importedVideoEvidence';
 const localVideoEvidenceStorageKey = 'isa.localVideoEvidence';
 const manualVideoEvidenceStorageKey = 'isa.manualVideoEvidence';
+const archivedVideoEvidenceStorageKey = 'isa.archivedVideoEvidence';
 const videoValidationStorageKey = 'isa.videoValidationClips';
+let pendingVideoEvidenceDeleteId = '';
 
 function safeVideoText(value) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -2795,6 +4016,27 @@ function safeVideoText(value) {
     '"': '&quot;',
     "'": '&#39;',
   })[char]);
+}
+
+function safePtVideoText(value) {
+  return safeVideoText(ptText(value));
+}
+
+function safePublicVideoText(value) {
+  const publicText = ptText(value)
+    .replace(/\bframes revisados\b/gi, 'momentos revisados')
+    .replace(/\bframe-chave\b/gi, 'momento-chave')
+    .replace(/\bframe pausado\b/gi, 'momento pausado')
+    .replace(/\bframe\b/gi, 'momento')
+    .replace(/\bMediaPipe local\b/gi, 'análise do vídeo')
+    .replace(/\bMediaPipe\b/gi, 'análise do vídeo')
+    .replace(/\bSports2D\b/gi, 'análise do vídeo')
+    .replace(/\bevidência inicial\b/gi, 'observação inicial')
+    .replace(/\bevidencia inicial\b/gi, 'observação inicial')
+    .replace(/\bJSON\b/g, 'arquivo revisado')
+    .replace(/\.mot|\.csv/gi, 'arquivo técnico')
+    .replace(/\bpipeline\b/gi, 'fluxo interno');
+  return safeVideoText(publicText);
 }
 
 function readVideoEvidenceList(key) {
@@ -2818,8 +4060,91 @@ function readManualVideoEvidence() {
   return readVideoEvidenceList(manualVideoEvidenceStorageKey);
 }
 
+function readArchivedVideoEvidence() {
+  return readVideoEvidenceList(archivedVideoEvidenceStorageKey);
+}
+
 function readVideoValidationClips() {
   return readVideoEvidenceList(videoValidationStorageKey);
+}
+
+function writeVideoEvidenceList(key, list) {
+  localStorage.setItem(key, JSON.stringify(Array.isArray(list) ? list : []));
+}
+
+function activeVideoEvidenceStorageKeys() {
+  return [localVideoEvidenceStorageKey, videoEvidenceStorageKey, manualVideoEvidenceStorageKey];
+}
+
+function findStoredVideoEvidence(id, keys = activeVideoEvidenceStorageKeys()) {
+  for (const key of keys) {
+    const list = readVideoEvidenceList(key);
+    const item = list.find((entry) => entry.id === id);
+    if (item) return { key, item, list };
+  }
+  return null;
+}
+
+function removeStoredVideoEvidence(id, keys = activeVideoEvidenceStorageKeys()) {
+  const found = findStoredVideoEvidence(id, keys);
+  if (!found) return null;
+  writeVideoEvidenceList(found.key, found.list.filter((entry) => entry.id !== id));
+  return found;
+}
+
+function removeVideoEvidenceSideEffects(id) {
+  const manualReviewId = `manual-review-${id}`;
+  const clipId = `clip-${id}`;
+  const manualList = readManualVideoEvidence().filter((entry) => entry.id !== manualReviewId && entry.calibrationOf !== id);
+  writeVideoEvidenceList(manualVideoEvidenceStorageKey, manualList);
+  const validationList = readVideoValidationClips().filter((entry) => entry.id !== clipId);
+  writeVideoEvidenceList(videoValidationStorageKey, validationList);
+}
+
+function archiveVideoEvidence(id) {
+  const removed = removeStoredVideoEvidence(id);
+  if (!removed) return null;
+  const archived = readArchivedVideoEvidence().filter((entry) => entry.id !== id);
+  const archivedItem = {
+    ...removed.item,
+    archivedAt: new Date().toISOString(),
+    archiveSourceKey: removed.key,
+  };
+  writeVideoEvidenceList(archivedVideoEvidenceStorageKey, [archivedItem, ...archived]);
+  return archivedItem;
+}
+
+function restoreArchivedVideoEvidence(id) {
+  const removed = removeStoredVideoEvidence(id, [archivedVideoEvidenceStorageKey]);
+  if (!removed) return null;
+  const { archiveSourceKey, archivedAt, ...item } = removed.item;
+  const targetKey = activeVideoEvidenceStorageKeys().includes(archiveSourceKey) ? archiveSourceKey : localVideoEvidenceStorageKey;
+  const current = readVideoEvidenceList(targetKey).filter((entry) => entry.id !== id);
+  writeVideoEvidenceList(targetKey, [item, ...current]);
+  return item;
+}
+
+function deleteVideoEvidenceForever(id) {
+  const removed = removeStoredVideoEvidence(id, [...activeVideoEvidenceStorageKeys(), archivedVideoEvidenceStorageKey]);
+  removeVideoEvidenceSideEffects(id);
+  return removed?.item || null;
+}
+
+function upsertValidationClipFromEvidence(item, status = 'IA rodada') {
+  if (!item) return null;
+  const clip = {
+    id: `clip-${item.id}`,
+    athlete: item.athlete || 'Isa',
+    fundamental: item.fundamental || 'Saque',
+    exerciseTitle: item.exerciseTitle || '',
+    phase: videoEvidencePhase(item),
+    marker: item.marker || 'Marcador tecnico',
+    status,
+    createdAt: new Date().toISOString(),
+  };
+  const existing = readVideoValidationClips().filter((entry) => entry.id !== clip.id);
+  localStorage.setItem(videoValidationStorageKey, JSON.stringify([clip, ...existing]));
+  return clip;
 }
 
 function phaseOptionsForFundamental(fundamental) {
@@ -2869,6 +4194,11 @@ function normalizeImportedVideoEvidence(payload) {
       status: String(item.status || 'Revisar'),
       reportUse: String(item.reportUse || 'Usar como evidencia tecnica revisavel.'),
       nextAction: String(item.nextAction || 'Comparar com a observacao manual antes do proximo treino.'),
+      exerciseId: item.exerciseId ? String(item.exerciseId) : '',
+      exerciseTitle: item.exerciseTitle ? String(item.exerciseTitle) : '',
+      exerciseMetric: item.exerciseMetric ? String(item.exerciseMetric) : '',
+      verdict: item.verdict ? String(item.verdict) : '',
+      checks: Array.isArray(item.checks) ? item.checks : [],
       metricTargets: Array.isArray(item.metricTargets) ? item.metricTargets : [],
       calibrationOf: item.calibrationOf ? String(item.calibrationOf) : '',
     };
@@ -3185,7 +4515,7 @@ function buildCalibrationReadiness(scopeLabel, pairs, aiCount) {
   }
   if (checkedPairs.length >= 5 && rate >= 80) {
     status = 'Pronto para piloto';
-    next = 'Usar em piloto controlado com revisao final da treinadora.';
+    next = 'Usar em piloto controlado com revisao final do treinador.';
   }
   return {
     label: scopeLabel,
@@ -3542,7 +4872,7 @@ function buildClipPipelinePreview(manifest) {
     },
     {
       id: 'manual-review',
-      label: 'Revisao da treinadora',
+      label: 'Revisao do treinador',
       detail: 'Parear a sugestao da IA com checagem manual antes do relatorio.',
       status: 'Obrigatorio',
     },
@@ -3615,7 +4945,7 @@ function buildPilotGates(target, acceptanceCriteria) {
     },
     {
       id: 'human-review',
-      label: 'Revisao final da treinadora',
+      label: 'Revisao final do treinador',
       current: acceptanceCriteria.finalHumanReview ? 1 : 0,
       target: 1,
       passed: Boolean(acceptanceCriteria.finalHumanReview),
@@ -3634,7 +4964,7 @@ function buildVideoPilotPackage(calibration, validationClips = [], candidateName
   const phaseTargets = videoMotionPhases.flatMap((group) => group.phases.map(([phase, detail]) => {
     const clips = validationClips.filter((clip) => clip.fundamental === group.fundamental && (clip.phase || defaultPhaseForEvidence(clip.fundamental, clip.marker)) === phase);
     const readiness = calibration.phaseReadiness.find((item) => item.fundamental === group.fundamental && item.phase === phase);
-    const reviewedClips = clips.filter((clip) => clip.status === 'Revisado com treinadora').length;
+    const reviewedClips = clips.filter((clip) => clip.status === 'Revisado com treinador').length;
     const aiRuns = clips.filter((clip) => clip.status === 'IA rodada').length;
     const pairedChecks = readiness?.checkedCount || 0;
     const alignmentRate = readiness?.rate || 0;
@@ -3660,7 +4990,7 @@ function buildVideoPilotPackage(calibration, validationClips = [], candidateName
       alignmentRate,
       status,
       nextAction: readyForPilot
-        ? 'Rodar piloto controlado e manter revisao final da treinadora.'
+        ? 'Rodar piloto controlado e manter revisao final do treinador.'
         : 'Coletar clips reais, rodar IA e parear checagens manuais antes de automatizar.',
     };
   }));
@@ -3761,7 +5091,7 @@ function buildVideoPilotPackage(calibration, validationClips = [], candidateName
       'npm run video:calibration:run -- --execute',
       'npm run video:calibration:process -- --write',
     ],
-    reviewRule: 'IA sugere evidencia. A treinadora valida criterio, fase do movimento e contexto antes do relatorio.',
+    reviewRule: 'IA sugere evidencia. O treinador valida criterio, fase do movimento e contexto antes do relatorio.',
   };
 }
 
@@ -3779,15 +5109,15 @@ function downloadJsonFile(filename, json) {
 
 function useVideoEvidenceInReport(item) {
   if (requiresVideoReview(item) && item.status !== 'Confirmada') {
-    window.__isaLastVideoAnalysisMessage = 'Confirme a evidencia de IA antes de enviar para o relatorio.';
+    window.__isaLastVideoAnalysisMessage = 'Revise a análise antes de enviar para o relatório.';
     renderAiVideosPage();
     return;
   }
 
   reportFundamental = item.fundamental;
-  reportExercise = `Video - ${item.marker}`;
+  reportExercise = `Vídeo - ${item.marker}`;
   reportNote = `${item.fundamental} - ${item.marker} (${item.timeRange}).`;
-  reportEvidence = `${item.metric}: ${item.value}; confianca ${Math.round(item.confidence * 100)}%; fonte ${item.source}.`;
+  reportEvidence = `${item.metric}: ${item.value}.`;
   reportCorrection = item.reportUse;
   reportNext = item.nextAction;
   localStorage.setItem('isa.reportNote', reportNote);
@@ -3828,7 +5158,7 @@ function posePreviewFromLandmarks(landmarks, focusIndexes = [], frameImage = '')
 
 function renderPosePreview(item, source) {
   const preview = item.posePreview;
-  if (!preview?.points?.length) return `<div class="pose-preview empty-preview"><span>${source}</span></div>`;
+  if (!preview?.points?.length) return '<div class="pose-preview empty-preview"><span>Sem prévia</span></div>';
 
   const pointsByIndex = new Map(preview.points.map((point) => [point.index, point]));
   const frameImage = preview.frameImage ? `<img class="pose-frame-image" src="${safeVideoText(preview.frameImage)}" alt="" aria-hidden="true" />` : '';
@@ -3852,7 +5182,7 @@ function renderPosePreview(item, source) {
         ${lines}
         ${circles}
       </svg>
-      <span>${source}</span>
+      <span>Momento analisado</span>
     </div>
   `;
 }
@@ -3940,7 +5270,7 @@ function renderVideoCalibrationPanel(calibration) {
 function buildVideoValidationPlan(clips, calibration) {
   return fundamentals.map(({ name }) => {
     const records = clips.filter((clip) => clip.fundamental === name);
-    const reviewed = records.filter((clip) => clip.status === 'Revisado com treinadora');
+    const reviewed = records.filter((clip) => clip.status === 'Revisado com treinador');
     const aiRuns = records.filter((clip) => clip.status === 'IA rodada');
     const readiness = calibration.readiness.find((item) => item.fundamental === name);
     const pairedChecks = readiness?.checkedCount || 0;
@@ -3952,8 +5282,12 @@ function buildVideoValidationPlan(clips, calibration) {
     if (records.length > 0) {
       status = 'Coletando clips';
       next = missingReviewed
-        ? `Revisar mais ${missingReviewed} clips com a treinadora.`
+        ? `Revisar mais ${missingReviewed} clips com o treinador.`
         : 'Rodar MediaPipe ou Sports2D nesses clips e parear as checagens.';
+    }
+    if (aiRuns.length > 0 && missingReviewed > 0) {
+      status = 'IA aguardando revisao';
+      next = `Criar checagem manual pareada para ${aiRuns.length} ${aiRuns.length === 1 ? 'clip analisado' : 'clips analisados'} antes de confiar no criterio.`;
     }
     if (reviewed.length >= targetClips) {
       status = 'Pronto para rodar IA';
@@ -3965,7 +5299,7 @@ function buildVideoValidationPlan(clips, calibration) {
     }
     if (pairedChecks >= 5 && (readiness?.rate || 0) >= 80) {
       status = 'Pronto para piloto';
-      next = 'Usar em piloto controlado com revisao final da treinadora.';
+      next = 'Usar em piloto controlado com revisao final do treinador.';
     }
 
     return {
@@ -4013,18 +5347,17 @@ function renderVideoValidationPanel(clips, calibration) {
       </div>
       <div class="panel-body stack">
         <div class="validation-grid">
-          ${activeRows || '<article class="note-box"><p>Nenhum clip real registrado. Comece com 3 clips curtos do mesmo fundamento, camera parada e uma atleta principal.</p></article>'}
+          ${activeRows || '<article class="note-box"><p>Nenhum clip real registrado. Comece com 3 clips curtos do mesmo fundamento, camera parada e um atleta principal.</p></article>'}
         </div>
         <div class="form-grid compact-form-grid">
           <div class="validation-form">
-            <label><span class="metric-label">Atleta</span><input id="validation-athlete" value="Isa" /></label>
             <label><span class="metric-label">Fundamento</span><select id="validation-fundamental">${fundamentals.map((item) => `<option value="${item.name}">${item.name}</option>`).join('')}</select></label>
             <label><span class="metric-label">Fase do movimento</span><select id="validation-phase">${phaseSelectOptions('Saque', 'Contato')}</select></label>
             <label><span class="metric-label">Marcador do clip</span><input id="validation-marker" placeholder="Ex.: ponto de contato, plataforma, aterrissagem" /></label>
             <label><span class="metric-label">Status</span><select id="validation-status">
               <option>Gravado</option>
               <option>IA rodada</option>
-              <option>Revisado com treinadora</option>
+              <option>Revisado com treinador</option>
             </select></label>
             <div class="video-button-row"><button class="btn-primary" id="add-validation-clip">Registrar clip</button><button class="btn-ghost" id="clear-validation-clips">Limpar plano</button></div>
           </div>
@@ -4039,7 +5372,7 @@ function renderVideoValidationPanel(clips, calibration) {
 
 function renderVideoClipManifestPanel(validationClips) {
   const manifest = buildVideoClipManifest(validationClips);
-  const readyClips = manifest.clips.filter((clip) => ['Gravado', 'IA rodada', 'Revisado com treinadora'].includes(clip.status)).length;
+  const readyClips = manifest.clips.filter((clip) => ['Gravado', 'IA rodada', 'Revisado com treinador'].includes(clip.status)).length;
   const worklistPreview = buildSports2DWorklistPreview(manifest);
   const worklistRows = worklistPreview.slice(0, 3).map((item) => `
     <article class="sports2d-worklist-row">
@@ -4324,52 +5657,73 @@ function renderVideoAiProjectMatrix() {
   `;
 }
 
-function videoEvidenceCard(item, calibration = null) {
+function videoEvidenceCard(item, calibration = null, options = {}) {
   const id = safeVideoText(item.id);
   const rawStatus = String(item.status || 'Revisar');
-  const source = safeVideoText(item.source);
-  const fundamental = safeVideoText(item.fundamental);
-  const status = safeVideoText(rawStatus);
-  const marker = safeVideoText(item.marker);
-  const phase = safeVideoText(item.phase || defaultPhaseForEvidence(item.fundamental, item.marker));
-  const metric = safeVideoText(item.metric);
-  const value = safeVideoText(item.value);
-  const athlete = safeVideoText(item.athlete);
+  const source = safePublicVideoText(item.source);
+  const fundamental = safePublicVideoText(displayLabel(item.fundamental));
+  const status = safePublicVideoText(rawStatus);
+  const marker = safePublicVideoText(item.marker);
+  const phase = safePublicVideoText(item.phase || defaultPhaseForEvidence(item.fundamental, item.marker));
+  const metric = safePublicVideoText(item.metric);
+  const value = safePublicVideoText(item.value);
+  const athlete = safePublicVideoText(item.athlete);
   const timeRange = safeVideoText(item.timeRange);
-  const reportUse = safeVideoText(item.reportUse);
-  const nextAction = safeVideoText(item.nextAction);
+  const reportUse = safePublicVideoText(item.reportUse);
+  const nextAction = safePublicVideoText(item.nextAction);
+  const exerciseTitle = safePublicVideoText(item.exerciseTitle || '');
+  const exerciseMetric = safePublicVideoText(item.exerciseMetric || '');
+  const verdict = safePublicVideoText(item.verdict || '');
+  const checks = Array.isArray(item.checks) ? item.checks : [];
+  const isArchived = Boolean(options.archived);
+  const showLifecycleActions = Boolean(options.manageActions);
+  const deleteIsPending = options.pendingDeleteId === item.id;
   const metricTarget = item.metricTargets?.[0];
-  const recommendedSource = metricTarget?.recommendedSource;
   const metricTargetBlock = metricTarget ? `
     <div class="video-metric-target-note">
-      <p><strong>Alvo tecnico:</strong> ${safeVideoText(metricTarget.signal || metricTarget.metric)}</p>
-      ${recommendedSource?.name ? `<p><strong>Fonte IA:</strong> ${safeVideoText(recommendedSource.name)} · ${safeVideoText(recommendedSource.status || recommendedSource.integrationMode || 'revisar')}</p>` : ''}
-      <p>${safeVideoText(metricTarget.manualCheck || 'Parear com checagem manual antes do relatorio.')}</p>
+      <p><strong>Critério analisado:</strong> ${safePublicVideoText(metricTarget.signal || metricTarget.metric)}</p>
+      <p>${safePublicVideoText(metricTarget.manualCheck || 'Revise o momento antes de usar no relatório.')}</p>
     </div>
   ` : '';
   const needsReview = requiresVideoReview(item);
   const canUseInReport = !needsReview || rawStatus === 'Confirmada';
   const hasManualCalibration = Boolean(calibration?.manualByAiId?.has(item.id));
   const reviewActions = needsReview ? `
-    <div class="video-review-actions" aria-label="Validacao da evidencia">
+    <div class="video-review-actions" aria-label="Revisão do resultado">
       <button class="btn-ghost" data-video-evidence-review="${id}" data-review-status="Confirmada" ${rawStatus === 'Confirmada' ? 'disabled' : ''}>Confirmar</button>
       <button class="btn-ghost danger-action" data-video-evidence-review="${id}" data-review-status="Descartada" ${rawStatus === 'Descartada' ? 'disabled' : ''}>Descartar</button>
-      <button class="btn-ghost" data-video-evidence-calibrate="${id}" ${hasManualCalibration ? 'disabled' : ''}>${hasManualCalibration ? 'Checagem manual salva' : 'Registrar checagem manual'}</button>
+      <button class="btn-ghost" data-video-evidence-calibrate="${id}" ${hasManualCalibration ? 'disabled' : ''}>${hasManualCalibration ? 'Revisão salva' : 'Revisar momento'}</button>
+    </div>
+  ` : '';
+  const lifecycleActions = showLifecycleActions ? `
+    <div class="video-lifecycle-actions" aria-label="${isArchived ? 'Acoes do resultado arquivado' : 'Organizacao do resultado'}">
+      ${isArchived
+        ? `<button class="btn-ghost" data-video-evidence-restore="${id}">Restaurar</button>`
+        : `<button class="btn-ghost" data-video-evidence-archive="${id}">Arquivar</button>`}
+      <button class="btn-ghost danger-action${deleteIsPending ? ' confirm-delete-action' : ''}" data-video-evidence-delete="${id}">${deleteIsPending ? 'Confirmar exclusão' : 'Excluir para sempre'}</button>
     </div>
   ` : '';
   return `
-    <article class="video-evidence-card">
+    <article class="video-evidence-card${isArchived ? ' archived-video-evidence-card' : ''}">
       ${renderPosePreview(item, source)}
       <div class="video-evidence-details">
-        <div class="exercise-card-top"><span class="tag">${fundamental}</span><span class="badge">${status}</span></div>
+        <div class="exercise-card-top"><span class="tag">${fundamental}</span><span class="badge">${isArchived ? 'Arquivado' : status}</span></div>
         <h4>${marker}</h4>
-        <p>${metric}: ${value}</p>
-        ${metricTargetBlock}
-        <div class="video-evidence-meta"><span>${athlete}</span><span>${timeRange}</span><span>${phase}</span><span>${Math.round(item.confidence * 100)}% confianca</span></div>
-        <p class="muted">${reportUse}</p>
-        <p class="muted">Proxima acao: ${nextAction}</p>
-        ${reviewActions}
-        <button class="btn-ghost" data-video-evidence-id="${id}" ${canUseInReport ? '' : 'disabled'}>${canUseInReport ? 'Usar no relatorio' : 'Confirme para relatorio'}</button>
+        ${exerciseTitle ? `<p class="video-exercise-ref"><strong>Exercício:</strong> ${exerciseTitle}</p>` : ''}
+        ${verdict ? `<div class="video-verdict ${verdict.includes('Revisar') ? 'needs-review' : 'ok'}"><strong>Ponto de atenção</strong><span>${verdict}</span></div>` : ''}
+        <p class="video-next-action"><strong>Próximo treino:</strong> ${nextAction}</p>
+        <details class="video-result-details">
+          <summary>Ver observação</summary>
+          <p><strong>O que observar:</strong> ${metric}: ${value}</p>
+          ${exerciseMetric ? `<p><strong>Critério do exercício:</strong> ${exerciseMetric}</p>` : ''}
+          ${metricTargetBlock}
+          ${checks.length ? `<div class="video-check-list">${checks.map((check) => `<span><strong>${safePublicVideoText(check.label)}:</strong> ${safePublicVideoText(check.value)}</span>`).join('')}</div>` : ''}
+          <div class="video-evidence-meta"><span>${athlete}</span><span>${timeRange}</span><span>${phase}</span></div>
+          <p>${reportUse}</p>
+        </details>
+        ${isArchived ? '' : reviewActions}
+        ${isArchived ? '' : `<button class="btn-ghost" data-video-evidence-id="${id}" ${canUseInReport ? '' : 'disabled'}>${canUseInReport ? 'Levar para relatório' : 'Revise antes do relatório'}</button>`}
+        ${lifecycleActions}
       </div>
     </article>
   `;
@@ -4395,12 +5749,12 @@ async function getPoseLandmarker() {
 
 async function verifyMediaPipePose(status, button) {
   button.disabled = true;
-  status.textContent = 'Carregando MediaPipe Pose Landmarker...';
+  status.textContent = 'Preparando análise de movimento...';
   try {
     await getPoseLandmarker();
-    status.textContent = 'MediaPipe carregado. Proximo passo: validar a pose frame a frame com um video real da atleta.';
+    status.textContent = 'Análise pronta. Próximo passo: validar com um vídeo real do atleta.';
   } catch (error) {
-    status.textContent = error instanceof Error ? error.message : 'Nao foi possivel carregar o MediaPipe.';
+    status.textContent = 'Não foi possível preparar a análise agora. Tente novamente mais tarde.';
   } finally {
     button.disabled = false;
   }
@@ -4490,10 +5844,28 @@ function kneeCandidate(landmarks, side) {
   };
 }
 
-function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSeconds) {
+function exerciseEvidenceFields(exercise, phase, verdict, detectedRatio) {
+  if (!exercise) return {};
+  return {
+    exerciseId: exercise.id || '',
+    exerciseTitle: exercise.title || '',
+    exerciseMetric: exercise.metric || '',
+    exerciseObjective: exercise.objective || '',
+    exerciseSetup: exercise.setup || '',
+    verdict,
+    checks: [
+      { label: 'Exercicio', value: exercise.title || 'Exercicio selecionado' },
+      { label: 'Criterio do treino', value: exercise.metric || 'Criterio tecnico do fundamento' },
+      { label: 'Momento do movimento', value: phase },
+      { label: 'Movimento detectado', value: `${Math.round(detectedRatio * 100)}% dos frames revisados` },
+    ],
+  };
+}
+
+function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSeconds, exercise = null) {
   const validSamples = samples.filter((sample) => sample.landmarks?.length);
   if (!validSamples.length) {
-    throw new Error('MediaPipe nao encontrou uma pose confiavel nesse clipe. Tente camera parada, corpo inteiro e boa luz.');
+    throw new Error('Não foi possível ler o movimento nesse clipe. Tente câmera parada, corpo inteiro e boa luz.');
   }
 
   const armSamples = validSamples.map((sample) => {
@@ -4519,6 +5891,9 @@ function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSe
     const phase = defaultPhaseForEvidence(fundamental, fundamental === 'Recepcao' ? 'Base de recepcao' : 'Base defensiva');
     const metricTargets = videoMetricTargetsFor(fundamental, phase);
     const target = metricTargets[0];
+    const verdict = angle < 155
+      ? 'Dentro do criterio inicial: base baixa detectada no frame-chave.'
+      : 'Revisar tecnica: a base parece alta ou pouco flexionada no frame-chave.';
     return [{
       id: `mediapipe-${fundamental.toLowerCase()}-${Date.now()}`,
       source: 'MediaPipe local',
@@ -4534,6 +5909,7 @@ function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSe
       reportUse: target?.manualCheck || 'Confirmar no frame se a base estava baixa e estavel antes de registrar correcao.',
       nextAction: target?.nextAction || 'Repetir uma serie curta filmando de frente ou lateral e comparar o mesmo criterio.',
       metricTargets,
+      ...exerciseEvidenceFields(exercise, phase, verdict, detectedRatio),
       posePreview: posePreviewFromLandmarks(best.landmarks, lowerFocus, best.frameImage || ''),
     }];
   }
@@ -4549,6 +5925,10 @@ function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSe
   const phase = defaultPhaseForEvidence(fundamental, markerByFundamental[fundamental] || 'Linha do braco');
   const metricTargets = videoMetricTargetsFor(fundamental, phase);
   const target = metricTargets[0];
+  const elbowOk = !Number.isFinite(best.arm.elbowAngle) || best.arm.elbowAngle >= 120;
+  const verdict = wristHigh === 'sim' && elbowOk
+    ? 'Dentro do criterio inicial: braco alto no frame-chave.'
+    : 'Revisar tecnica: altura do braco ou extensao do cotovelo precisa de confirmacao.';
   return [{
     id: `mediapipe-${fundamental.toLowerCase()}-${Date.now()}`,
     source: 'MediaPipe local',
@@ -4564,11 +5944,12 @@ function createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSe
     reportUse: target?.manualCheck || 'Confirmar se o contato ou alcance aconteceu alto o suficiente antes de registrar correcao.',
     nextAction: target?.nextAction || 'Repetir 3 series curtas mantendo camera parada e comparar a altura do punho no mesmo marcador.',
     metricTargets,
+    ...exerciseEvidenceFields(exercise, phase, verdict, detectedRatio),
     posePreview: posePreviewFromLandmarks(best.landmarks, armFocus, best.frameImage || ''),
   }];
 }
 
-async function analyzeTrainingVideo({ file, athlete, fundamental, onProgress }) {
+async function analyzeTrainingVideo({ file, athlete, fundamental, exercise, onProgress }) {
   const poseLandmarker = await getPoseLandmarker();
   const video = document.createElement('video');
   video.muted = true;
@@ -4593,7 +5974,7 @@ async function analyzeTrainingVideo({ file, athlete, fundamental, onProgress }) 
       onProgress?.((index + 1) / sampleCount);
     }
 
-    return createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSeconds);
+    return createEvidenceFromPoseSamples(samples, athlete, fundamental, durationSeconds, exercise);
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
@@ -4620,7 +6001,7 @@ function loadVideoBlob(url) {
   });
 }
 
-async function runVideoAnalysis({ file, athlete, fundamental, status, button }) {
+async function runVideoAnalysis({ file, athlete, fundamental, exercise, status, button }) {
   button.disabled = true;
   status.textContent = 'Preparando analise local do clipe...';
   try {
@@ -4628,21 +6009,24 @@ async function runVideoAnalysis({ file, athlete, fundamental, status, button }) 
       file,
       athlete,
       fundamental,
+      exercise,
       onProgress: (progress) => {
-        status.textContent = `Analisando pose no video: ${Math.round(progress * 100)}%.`;
+        status.textContent = `Analisando movimento no vídeo: ${Math.round(progress * 100)}%.`;
       },
     });
     if (!Array.isArray(generated) || !generated.length) {
       throw new Error('A analise terminou sem gerar evidencia revisavel.');
     }
-    localStorage.setItem(localVideoEvidenceStorageKey, JSON.stringify(generated));
+    const currentLocalEvidence = readLocalVideoEvidence().filter((item) => !generated.some((entry) => entry.id === item.id));
+    writeVideoEvidenceList(localVideoEvidenceStorageKey, [...generated, ...currentLocalEvidence]);
     if (!readLocalVideoEvidence().length) {
       throw new Error('A evidencia foi gerada, mas nao foi salva no navegador.');
     }
-    window.__isaLastVideoAnalysisMessage = `Evidencia MediaPipe gerada: ${generated[0].marker}. Revise antes de usar no relatorio.`;
+    const registeredClips = generated.map((item) => upsertValidationClipFromEvidence(item)).filter(Boolean).length;
+    window.__isaLastVideoAnalysisMessage = `Análise do exercício "${generated[0].exerciseTitle || exercise?.title || fundamental}" gerada: ${generated[0].verdict || generated[0].marker}. ${registeredClips} clipe ficou salvo para revisão.`;
     renderAiVideosPage();
   } catch (error) {
-    status.textContent = error instanceof Error ? error.message : 'Nao foi possivel analisar o video com MediaPipe.';
+    status.textContent = error instanceof Error ? error.message : 'Não foi possível analisar o vídeo.';
     button.disabled = false;
   }
 }
@@ -4656,7 +6040,8 @@ async function runDemoVideoAnalysis(status, button) {
     await runVideoAnalysis({
       file,
       athlete: 'Demo Sports2D',
-      fundamental: document.querySelector('#mediapipe-fundamental')?.value || 'Saque',
+      fundamental: findVideoAnalysisExercise(document.querySelector('#mediapipe-exercise')?.value)?.fundamental || 'Saque',
+      exercise: findVideoAnalysisExercise(document.querySelector('#mediapipe-exercise')?.value),
       status,
       button,
     });
@@ -4666,62 +6051,108 @@ async function runDemoVideoAnalysis(status, button) {
   }
 }
 
+function setVideoPreviewFromSample(sample, status) {
+  const fileDisplay = document.querySelector('#video-file-display');
+  const previewVideo = document.querySelector('#video-upload-preview');
+  const previewHint = document.querySelector('#video-preview-hint');
+  if (window.__isaVideoPreviewUrl) {
+    URL.revokeObjectURL(window.__isaVideoPreviewUrl);
+    window.__isaVideoPreviewUrl = '';
+  }
+  if (fileDisplay) fileDisplay.textContent = `Exemplo: ${sample.fileName}`;
+  if (previewVideo) {
+    previewVideo.src = sample.source;
+    previewVideo.hidden = false;
+  }
+  if (previewHint) previewHint.textContent = `${ptText(sample.title)} carregado para revisar enquadramento antes da análise.`;
+  if (status) status.textContent = `Exemplo "${ptText(sample.title)}" pronto. Assista aqui ou use Processar exemplo no card.`;
+}
+
+async function runSampleVideoAnalysis(sample, status, button) {
+  const exercise = findExerciseForVideoSample(sample);
+  if (exercise?.id) {
+    selectedVideoExerciseId = exercise.id;
+    localStorage.setItem('isa.selectedVideoExerciseId', selectedVideoExerciseId);
+    const exerciseSelect = document.querySelector('#mediapipe-exercise');
+    if (exerciseSelect) exerciseSelect.value = exercise.id;
+  }
+  setVideoPreviewFromSample(sample, status);
+  button.disabled = true;
+  try {
+    const blob = await loadVideoBlob(sample.source);
+    const file = new File([blob], sample.fileName, { type: blob.type || 'video/webm' });
+    await runVideoAnalysis({
+      file,
+      athlete: 'Atleta exemplo',
+      fundamental: exercise?.fundamental || sample.fundamental,
+      exercise,
+      status,
+      button,
+    });
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : 'Nao foi possivel carregar o video de exemplo.';
+    button.disabled = false;
+  }
+}
+
 function renderVideosPage() {
   const currentPosition = getSelectedPosition();
   const markers = getPositionVideoMarkers(currentPosition);
   const timeline = [
-    ['00:00', 'Preparar', 'Nomeie fundamento, objetivo e criterio antes de assistir.'],
+    ['00:00', 'Preparar', 'Nomeie fundamento, objetivo e critério antes de assistir.'],
     ['00:04', 'Pausar', 'Congele o momento em que aparece contato, base ou deslocamento.'],
-    ['00:08', 'Marcar', 'Anote tempo, evidencia observada e proxima repeticao.'],
+    ['00:08', 'Marcar', 'Anote tempo, evidência observada e próxima repetição.'],
   ];
-  const evidence = [
+  const activeEvidence = [
     ...readLocalVideoEvidence(),
     ...readImportedVideoEvidence(),
     ...readManualVideoEvidence(),
-    {
-      id: 'manual-saque-demo',
-      source: 'Manual',
-      fundamental: 'Saque',
-      phase: 'Contato',
-      athlete: 'Atleta exemplo',
-      timeRange: '00:03 - 00:05',
-      marker: 'Braco de contato',
-      metric: 'Punho acima da linha do ombro',
-      value: 'sim',
-      confidence: 0.72,
-      status: 'Revisar',
-      reportUse: 'Usar como evidencia inicial e confirmar no frame pausado.',
-      nextAction: 'Repetir com lancamento mais estavel e registrar acertos.',
-    },
   ];
+  const archivedEvidence = readArchivedVideoEvidence();
+  const demoEvidence = {
+    id: 'manual-saque-demo',
+    source: 'Manual',
+    fundamental: 'Saque',
+    phase: 'Contato',
+    athlete: 'Atleta exemplo',
+    timeRange: '00:03 - 00:05',
+    marker: 'Braço de contato',
+    metric: 'Punho acima da linha do ombro',
+    value: 'sim',
+    confidence: 0.72,
+    status: 'Revisar',
+    reportUse: 'Usar como observação inicial e confirmar no momento pausado.',
+    nextAction: 'Repetir com lançamento mais estável e registrar acertos.',
+  };
+  const evidence = [...activeEvidence, demoEvidence];
   const calibration = buildVideoCalibration(evidence);
   const validationClips = readVideoValidationClips();
 
   renderShell(`
     <div class="content-inner stack">
       <section class="video-evidence-hero">
-        <img src="/assets/video-evidence-station.webp" alt="" aria-hidden="true" />
+        <img src="public/assets/video-evidence-station.webp" alt="" aria-hidden="true" />
         <div class="video-evidence-content">
-          <p class="eyebrow">Video, fundamento e evidencia</p>
-          <h2>Assista, marque o momento e transforme em evidencia para ${currentPosition?.name || 'sua posicao'}.</h2>
-          <p>Para treino individual em casa, o video serve como caderno visual: pausar, comparar criterio da posicao e decidir a proxima repeticao.</p>
+          <p class="eyebrow">Vídeo, fundamento e evidência</p>
+          <h2>Assista, marque o momento e transforme em evidência para ${currentPosition?.name || 'sua posição'}.</h2>
+          <p>Para treino individual em casa, o vídeo serve como caderno visual: pausar, comparar critério da posição e decidir a próxima repetição.</p>
           <div class="hero-actions">
-            <button class="btn-primary" data-page="relatorios">Levar para relatorio</button>
-            <button class="btn-ghost" data-page="exercicios">Ver exercicios relacionados</button>
+            <button class="btn-primary" data-page="relatorios">Levar para relatório</button>
+            <button class="btn-ghost" data-page="exercicios">Ver exercícios relacionados</button>
           </div>
         </div>
       </section>
 
       <section class="panel">
         <div class="panel-header">
-          <div><h3>Linha do tempo de revisao</h3><p class="panel-subtitle">Um jeito simples de transformar clip curto em decisao de treino.</p></div>
+          <div><h3>Linha do tempo de revisão</h3><p class="panel-subtitle">Um jeito simples de transformar clipe curto em decisão de treino.</p></div>
           <span class="pill active">${timeline.length} passos</span>
         </div>
         <div class="panel-body manual-timeline">
           ${timeline.map(([time, title, detail]) => `
             <article class="timeline-marker">
               <span class="timeline-time">${time}</span>
-              <div><h4>${title}</h4><p>${detail}</p></div>
+              <div><h4>${title}</h4><p>${ptText(detail)}</p></div>
             </article>
           `).join('')}
         </div>
@@ -4730,31 +6161,31 @@ function renderVideosPage() {
       <div class="form-grid">
         <section class="panel">
           <div class="panel-header">
-            <div><h3>Ficha de evidencia manual</h3><p class="panel-subtitle">Campos que deixam o video util para o relatorio.</p></div>
+            <div><h3>Ficha de evidência manual</h3><p class="panel-subtitle">Campos que deixam o vídeo útil para o relatório.</p></div>
           </div>
           <div class="panel-body stack">
             <div class="video-pipeline-grid">
               ${[
                 ['1', 'Tempo', 'Exemplo: 00:03 a 00:05.'],
-                ['2', 'Criterio', 'O que precisa aparecer para considerar bom?'],
-                ['3', 'Proxima acao', 'Qual repeticao ou ajuste vem depois?'],
+                ['2', 'Critério', 'O que precisa aparecer para considerar bom?'],
+                ['3', 'Próxima ação', 'Qual repetição ou ajuste vem depois?'],
               ].map(([number, title, detail]) => `<article class="video-step-card"><span>${number}</span><div><h4>${title}</h4><p>${detail}</p></div></article>`).join('')}
             </div>
-            <article class="note-box"><p><strong style="color:white">Regra da fase atual</strong></p><p>Sem analise automatica nesta etapa. A atleta observa o clip, marca o criterio e usa o relatorio para evoluir.</p></article>
+            <article class="note-box"><p><strong style="color:white">Regra da fase atual</strong></p><p>Sem análise automática nesta etapa. O atleta observa o clipe, marca o critério e usa o relatório para evoluir.</p></article>
           </div>
         </section>
         <section class="panel">
-          <div class="panel-header"><div><h3>O que marcar</h3><p class="panel-subtitle">Criterios tecnicos, nao efeitos visuais.</p></div></div>
+          <div class="panel-header"><div><h3>O que marcar</h3><p class="panel-subtitle">Critérios técnicos, não efeitos visuais.</p></div></div>
           <div class="panel-body stack">
             ${markers.map(([name, marker]) => `
-              <div class="action-item"><p><strong style="color:white">${name}</strong><br>${marker}</p><span class="tag">marcador</span></div>
+              <div class="action-item"><p><strong style="color:white">${displayLabel(name)}</strong><br>${ptText(marker)}</p><span class="tag">marcador</span></div>
             `).join('')}
           </div>
         </section>
       </div>
 
       <section class="panel">
-        <div class="panel-header"><div><h3>Evidencias para relatorio</h3><p class="panel-subtitle">Cada card mantem fundamento, tempo e proxima acao.</p></div></div>
+        <div class="panel-header"><div><h3>Evidências para relatório</h3><p class="panel-subtitle">Cada card mantém fundamento, tempo e próxima ação.</p></div></div>
         <div class="panel-body video-evidence-grid">
           ${evidence.map(videoEvidenceCard).join('')}
         </div>
@@ -4762,19 +6193,19 @@ function renderVideosPage() {
 
       <div class="form-grid">
         <section class="panel">
-          <div class="panel-header"><div><h3>Importar marcacoes revisadas</h3><p class="panel-subtitle">Opcional para quando uma ficha manual ja estiver em JSON.</p></div></div>
+          <div class="panel-header"><div><h3>Importar marcações revisadas</h3><p class="panel-subtitle">Opcional para quando uma ficha manual já estiver em JSON.</p></div></div>
           <div class="panel-body stack">
-            <textarea id="video-evidence-json" placeholder="Cole aqui uma lista de evidencias manuais revisadas."></textarea>
-            <div class="video-button-row"><button class="btn-primary" id="import-video-evidence">Importar JSON</button><button class="btn-ghost" id="clear-video-evidence">Limpar evidencias locais</button></div>
+            <textarea id="video-evidence-json" placeholder="Cole aqui uma lista de evidências manuais revisadas."></textarea>
+            <div class="video-button-row"><button class="btn-primary" id="import-video-evidence">Importar JSON</button><button class="btn-ghost" id="clear-video-evidence">Limpar evidências locais</button></div>
             <article class="note-box" id="video-import-message" hidden><p></p></article>
           </div>
         </section>
         <section class="panel">
-          <div class="panel-header"><div><h3>Como gravar em casa</h3><p class="panel-subtitle">Pouco equipamento, criterio bem definido.</p></div></div>
+          <div class="panel-header"><div><h3>Como gravar em casa</h3><p class="panel-subtitle">Pouco equipamento, critério bem definido.</p></div></div>
           <div class="panel-body stack">
-            <div class="action-item"><p><strong style="color:white">Camera parada</strong><br>Apoie o celular e grave uma repeticao curta por fundamento.</p><span class="tag">base</span></div>
-            <div class="action-item"><p><strong style="color:white">Um criterio por clip</strong><br>Escolha contato, plataforma, passada, base ou recuperacao.</p><span class="tag">foco</span></div>
-            <div class="action-item"><p><strong style="color:white">Revisao rapida</strong><br>Pare no momento chave e leve so uma evidencia para o relatorio.</p><span class="tag">relatorio</span></div>
+            <div class="action-item"><p><strong style="color:white">Câmera parada</strong><br>Apoie o celular e grave uma repetição curta por fundamento.</p><span class="tag">base</span></div>
+            <div class="action-item"><p><strong style="color:white">Um critério por clipe</strong><br>Escolha contato, plataforma, passada, base ou recuperação.</p><span class="tag">foco</span></div>
+            <div class="action-item"><p><strong style="color:white">Revisão rápida</strong><br>Pare no momento-chave e leve só uma evidência para o relatório.</p><span class="tag">relatório</span></div>
           </div>
         </section>
       </div>
@@ -4790,7 +6221,7 @@ function renderVideosPage() {
       renderVideosPage();
     } catch (error) {
       message.hidden = false;
-      messageText.textContent = error instanceof Error ? error.message : 'Nao foi possivel importar o JSON.';
+      messageText.textContent = error instanceof Error ? error.message : 'Não foi possível importar o JSON.';
     }
   });
   document.querySelector('#clear-video-evidence')?.addEventListener('click', () => {
@@ -4806,148 +6237,195 @@ function renderVideosPage() {
 }
 function renderAiVideosPage() {
   const currentPosition = getSelectedPosition();
-  const markers = getPositionVideoMarkers(currentPosition);
-  const analysisFundamentals = getPositionExerciseFundamentals(currentPosition);
-  const evidence = [
+  const analysisExercises = getVideoAnalysisExercises(currentPosition);
+  const selectedExercise = findVideoAnalysisExercise(selectedVideoExerciseId, currentPosition);
+  if (selectedExercise && selectedVideoExerciseId !== selectedExercise.id) {
+    selectedVideoExerciseId = selectedExercise.id;
+    localStorage.setItem('isa.selectedVideoExerciseId', selectedVideoExerciseId);
+  }
+  const exerciseOptions = analysisExercises.map((exercise) => `
+    <option value="${safeVideoText(exercise.id)}" ${exercise.id === selectedVideoExerciseId ? 'selected' : ''}>
+      ${safePtVideoText(exercise.title)} · ${safePtVideoText(displayLabel(exercise.fundamental))}
+    </option>
+  `).join('');
+  const activeEvidence = [
     ...readLocalVideoEvidence(),
     ...readImportedVideoEvidence(),
     ...readManualVideoEvidence(),
-    {
-      id: 'manual-saque-demo',
-      source: 'Manual',
-      fundamental: 'Saque',
-      phase: 'Contato',
-      athlete: 'Atleta exemplo',
-      timeRange: '00:03 - 00:05',
-      marker: 'Braco de contato',
-      metric: 'Punho acima da linha do ombro',
-      value: 'sim',
-      confidence: 0.72,
-      status: 'Revisar',
-      reportUse: 'Usar como evidencia inicial e confirmar no frame pausado.',
-      nextAction: 'Repetir com lancamento mais estavel e registrar acertos.',
-    },
   ];
+  const archivedEvidence = readArchivedVideoEvidence();
+  const demoEvidence = {
+    id: 'manual-saque-demo',
+    source: 'Manual',
+    fundamental: 'Saque',
+    phase: 'Contato',
+    athlete: 'Atleta exemplo',
+    timeRange: '00:03 - 00:05',
+    marker: 'Braço de contato',
+    metric: 'Punho acima da linha do ombro',
+    value: 'sim',
+    confidence: 0.72,
+    status: 'Revisar',
+    reportUse: 'Usar como observação inicial e confirmar no momento pausado.',
+    nextAction: 'Repetir com lançamento mais estável e registrar acertos.',
+  };
+  const evidence = [...activeEvidence, demoEvidence];
   const calibration = buildVideoCalibration(evidence);
-  const validationClips = readVideoValidationClips();
-
+  const visibleEvidence = activeEvidence.length ? activeEvidence : [demoEvidence];
+  const evidenceCards = visibleEvidence.map((item) => videoEvidenceCard(item, calibration, {
+    manageActions: activeEvidence.includes(item),
+    pendingDeleteId: pendingVideoEvidenceDeleteId,
+  })).join('');
+  const archivedCards = archivedEvidence.map((item) => videoEvidenceCard(item, calibration, {
+    archived: true,
+    manageActions: true,
+    pendingDeleteId: pendingVideoEvidenceDeleteId,
+  })).join('');
+  const selectedExerciseSummary = selectedExercise ? `
+    <article class="video-selected-exercise" id="video-exercise-summary">
+      <div>
+        <span class="tag">${safePtVideoText(displayLabel(selectedExercise.fundamental))}</span>
+        <h3>${safePtVideoText(selectedExercise.title)}</h3>
+        <p>${safePtVideoText(selectedExercise.objective)}</p>
+      </div>
+      <div class="video-exercise-criteria">
+        <span><strong>Como executar:</strong> ${safePtVideoText(selectedExercise.setup)}</span>
+        <span><strong>Critério:</strong> ${safePtVideoText(selectedExercise.metric)}</span>
+        <span><strong>Dose:</strong> ${safePtVideoText(selectedExercise.duration)}</span>
+      </div>
+    </article>
+  ` : '';
   renderShell(`
-    <div class="content-inner stack">
-      <section class="video-evidence-hero">
-        <img src="/assets/video-evidence-station.webp" alt="" aria-hidden="true" />
-        <div class="video-evidence-content">
-          <p class="eyebrow">Video, movimento e evidencia</p>
-          <h2>IA como assistente de revisao tecnica para ${currentPosition?.name || 'sua posicao'}.</h2>
-          <p>O modelo sugere pontos do corpo e o app transforma isso em evidencia. A decisao final continua sendo tecnica: fundamento da posicao, marcador, confianca e proxima acao.</p>
-          <div class="hero-actions">
-            <button class="btn-primary" data-page="relatorios">Levar para relatorio</button>
-            <button class="btn-ghost" data-page="exercicios">Ver exercicios relacionados</button>
+    <div class="content-inner video-focus-page">
+      <section class="panel video-analysis-station">
+        <div class="video-station-main">
+          <div>
+            <p class="eyebrow">Análise de exercício</p>
+            <h2>Melhore seu movimento com vídeo</h2>
+            <p class="station-subtitle">Envie um clipe curto do treino, revise os pontos de atenção e transforme a análise em uma correção prática.</p>
           </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <div><h3>Pipeline de analise</h3><p class="panel-subtitle">Primeiro evidencias confiaveis, depois automacoes maiores.</p></div>
-          <span class="pill active">${evidence.length} evidencias</span>
-        </div>
-        <div class="panel-body video-pipeline-grid">
-          ${[
-            ['1', 'Video bruto', `Gravar ${analysisFundamentals.join(', ')} em angulo simples.`],
-            ['2', 'Pontos do corpo', 'MediaPipe estima ombro, cotovelo, punho, quadril, joelho e tornozelo.'],
-            ['3', 'Evidencia revisavel', 'Transformar achado em marcador, confianca e proxima acao.'],
-          ].map(([number, title, detail]) => `<article class="video-step-card"><span>${number}</span><div><h4>${title}</h4><p>${detail}</p></div></article>`).join('')}
-        </div>
-      </section>
-
-      <div class="form-grid">
-        <section class="panel">
-          <div class="panel-header"><div><h3>Analise local com MediaPipe</h3><p class="panel-subtitle">Valida o modelo no navegador antes de automatizar criterios.</p></div></div>
-          <div class="panel-body stack">
-            <div class="video-control-grid">
-              <label><span class="metric-label">Video do treino</span><input id="mediapipe-video-file" type="file" accept="video/*" /></label>
-              <label><span class="metric-label">Atleta</span><input id="mediapipe-athlete" value="Isa" /></label>
-              <label><span class="metric-label">Fundamento</span><select id="mediapipe-fundamental">${analysisFundamentals.map((name) => `<option value="${name}">${name}</option>`).join('')}</select></label>
-              <button class="btn-primary" id="run-mediapipe-analysis">Analisar pose</button>
+          <form class="video-station-controls" id="video-analysis-form">
+            <label class="video-exercise-select"><span class="metric-label">Exercício</span><select id="mediapipe-exercise">${exerciseOptions}</select></label>
+            <label class="video-file-drop">
+              <span class="metric-label">Vídeo do treino</span>
+              <input id="mediapipe-video-file" type="file" accept="video/*" />
+              <span class="video-upload-trigger" id="video-file-display">Adicionar vídeo curto</span>
+            </label>
+            <button class="btn-primary video-primary-action" id="run-mediapipe-analysis" type="submit">Analisar vídeo</button>
+          </form>
+          ${selectedExerciseSummary}
+          <article class="video-upload-preview-box">
+            <div>
+              <strong>Preview do envio</strong>
+              <p id="video-preview-hint">Selecione um vídeo para conferir se o movimento aparece com clareza.</p>
             </div>
-            <div class="video-button-row"><button class="btn-ghost" id="verify-mediapipe">Verificar MediaPipe</button><button class="btn-ghost" id="run-mediapipe-demo">Testar demo Sports2D</button></div>
-            <article class="note-box"><p><strong style="color:white">Status</strong></p><p id="video-ai-status">${safeVideoText(window.__isaLastVideoAnalysisMessage || 'Selecione um video curto para testar pose local no navegador.')}</p></article>
+            <video id="video-upload-preview" controls playsinline muted hidden></video>
+          </article>
+          <article class="video-status-box">
+            <strong>Status</strong>
+            <p id="video-ai-status">${safePtVideoText(window.__isaLastVideoAnalysisMessage || 'Aguardando vídeo curto do treino.')}</p>
+          </article>
+        </div>
+        <aside class="video-station-side">
+          <div class="video-score-strip">
+            <article><span>${activeEvidence.length}</span><p>resultados</p></article>
+            <article><span>${calibration.checkedManual}</span><p>revisados</p></article>
+            <article><span>Premium</span><p>análise em vídeo</p></article>
           </div>
-        </section>
-        <section class="panel">
-          <div class="panel-header"><div><h3>Marcadores tecnicos</h3><p class="panel-subtitle">Criterios que guiam IA e revisao manual.</p></div></div>
-          <div class="panel-body stack">
-            ${markers.map(([name, marker]) => `<div class="action-item"><p><strong style="color:white">${name}</strong><br>${marker}</p><span class="tag">marcador</span></div>`).join('')}
+          <article class="note-box compact-note">
+            <p><strong style="color:white">Como usar melhor</strong></p>
+            <p>Grave poucos segundos, revise o ponto principal e leve apenas uma correção para o próximo treino.</p>
+          </article>
+        </aside>
+      </section>
+
+      <div class="video-quick-grid public-video-results">
+        <section class="panel compact-video-panel">
+          <div class="panel-header">
+            <div><h3>Correções do vídeo</h3><p class="panel-subtitle">Veja o ponto de atenção e leve uma ação para o próximo treino.</p></div>
+            <span class="pill active">${activeEvidence.length} ativos</span>
           </div>
+          <div class="panel-body video-evidence-grid compact-evidence-grid">${evidenceCards}</div>
         </section>
+        <details class="panel video-archive-folder">
+          <summary>
+            <span>Arquivados</span>
+            <small>${archivedEvidence.length} resultados guardados</small>
+          </summary>
+          <div class="panel-body video-evidence-grid compact-evidence-grid">
+            ${archivedCards || '<article class="note-box"><p>Nenhum resultado arquivado ainda. Use Arquivar em um resultado ativo para guardar sem apagar.</p></article>'}
+          </div>
+        </details>
       </div>
 
-      ${renderVideoMotionPhasePanel()}
-
-      ${renderVideoMovementMetricMap()}
-
-      ${renderVideoAiProjectMatrix()}
-
-      <section class="panel">
-        <div class="panel-header"><div><h3>Evidencias para relatorio</h3><p class="panel-subtitle">Cada card mantem origem, confianca e proxima acao.</p></div></div>
-        <div class="panel-body video-evidence-grid">${evidence.map((item) => videoEvidenceCard(item, calibration)).join('')}</div>
+      <section class="panel video-next-step-panel">
+        <div>
+          <h3>Próximo passo</h3>
+          <p>${calibration.checkedManual ? 'Escolha uma análise revisada e transforme em meta de treino.' : 'Depois de analisar, revise o resultado antes de levar para o relatório.'}</p>
+        </div>
+        <div class="video-button-row">
+          <button class="btn-primary" data-page="relatorios">Levar para relatório</button>
+          <button class="btn-ghost" data-page="exercicios">Exercícios relacionados</button>
+        </div>
       </section>
 
-      ${renderVideoCalibrationPanel(calibration)}
-
-      ${renderVideoValidationPanel(validationClips, calibration)}
-
-      ${renderVideoClipManifestPanel(validationClips)}
-
-      ${renderVideoPilotPackagePanel(calibration, validationClips)}
-
-      <div class="form-grid">
-        <section class="panel">
-          <div class="panel-header"><div><h3>Importar evidencias normalizadas</h3><p class="panel-subtitle">Aceita a saida do contrato isa.video-evidence.v1.</p></div></div>
-          <div class="panel-body stack">
-            <textarea id="video-evidence-json" placeholder="Cole aqui a saida de npm run video:evidence ou de um normalizador equivalente."></textarea>
-            <div class="video-button-row"><button class="btn-primary" id="import-video-evidence">Importar JSON</button><button class="btn-ghost" id="clear-video-evidence">Limpar evidencias importadas</button></div>
-            <div class="sports2d-import-box">
-              <label><span class="metric-label">Arquivo Sports2D .mot/.csv</span><input id="sports2d-angle-file" type="file" accept=".mot,.csv,.txt,text/plain,text/csv" /></label>
-              <div class="video-button-row"><button class="btn-ghost" id="import-sports2d-file">Converter Sports2D</button><button class="btn-ghost" id="import-sports2d-demo">Testar amostra Sports2D</button></div>
-            </div>
-            <div class="sports2d-runner-box">
-              <label><span class="metric-label">Relatorio do runner Sports2D</span><textarea id="sports2d-run-report-json" placeholder="Cole aqui a saida de npm run video:calibration:run ou npm run video:sports2d:run."></textarea></label>
-              <div class="video-button-row"><button class="btn-ghost" id="review-sports2d-run-report">Revisar runner</button><button class="btn-ghost" id="load-sports2d-run-demo">Testar runner demo</button><button class="btn-ghost" id="load-sports2d-blocked-demo">Testar bloqueio</button></div>
-              <div id="sports2d-run-report-result" hidden></div>
-            </div>
-            <article class="note-box" id="video-import-message" hidden><p></p></article>
-          </div>
-        </section>
-        <section class="panel">
-          <div class="panel-header"><div><h3>Projetos avaliados</h3><p class="panel-subtitle">Base tecnica para adaptar ao volei.</p></div></div>
-          <div class="panel-body stack">
-            <div class="action-item"><p><strong style="color:white">MediaPipe Pose</strong><br>Base leve para 33 pontos do corpo no navegador.</p><span class="tag">agora</span></div>
-            <div class="action-item"><p><strong style="color:white">Sports2D</strong><br>Adaptador local converte .mot/.csv de angulos em evidencia: npm run video:sports2d.</p><span class="tag">adaptador</span></div>
-            <div class="action-item"><p><strong style="color:white">Validador de evidencia</strong><br>Confere contrato, campos obrigatorios, revisao e alvos tecnicos antes do relatorio.</p><span class="tag">npm run video:evidence:validate</span></div>
-            <div class="action-item"><p><strong style="color:white">volleystat e Pose2Sim</strong><br>Referencias para bola, quadra, tracking e cinematica 3D em etapas futuras.</p><span class="tag">referencia</span></div>
-            <div class="action-item"><p><strong style="color:white">Mapa de fontes</strong><br>Decisao atual: usar Sports2D por CLI, MediaPipe no navegador e nao clonar repositorio pesado antes dos clips reais.</p><span class="tag">npm run video:sources</span></div>
-            <div class="action-item"><p><strong style="color:white">Verificacao GitHub</strong><br>Confere licenca, atividade e estado dos repositorios antes de copiar ou adaptar codigo externo.</p><span class="tag">npm run video:sources:github</span></div>
-            <div class="action-item"><p><strong style="color:white">Preflight IA</strong><br>Confere Python, Sports2D e MediaPipe; se faltar Sports2D, prepara ambiente local com npm run video:env:setup.</p><span class="tag">npm run video:env</span></div>
-          </div>
-        </section>
-      </div>
     </div>
   `);
   const status = document.querySelector('#video-ai-status');
-  document.querySelector('#run-mediapipe-analysis')?.addEventListener('click', async (event) => {
+  const exerciseSelect = document.querySelector('#mediapipe-exercise');
+  exerciseSelect?.addEventListener('change', () => {
+    selectedVideoExerciseId = exerciseSelect.value;
+    localStorage.setItem('isa.selectedVideoExerciseId', selectedVideoExerciseId);
+    renderAiVideosPage();
+  });
+  const fileInput = document.querySelector('#mediapipe-video-file');
+  const fileDisplay = document.querySelector('#video-file-display');
+  const previewVideo = document.querySelector('#video-upload-preview');
+  const previewHint = document.querySelector('#video-preview-hint');
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (fileDisplay) fileDisplay.textContent = file ? file.name : 'Adicionar vídeo';
+    if (window.__isaVideoPreviewUrl) URL.revokeObjectURL(window.__isaVideoPreviewUrl);
+    if (!file || !previewVideo) return;
+    window.__isaVideoPreviewUrl = URL.createObjectURL(file);
+    previewVideo.src = window.__isaVideoPreviewUrl;
+    previewVideo.hidden = false;
+    if (previewHint) previewHint.textContent = `${file.name} pronto para revisão visual antes da análise.`;
+    if (status) status.textContent = 'Vídeo carregado. Confira se o corpo inteiro aparece antes de processar.';
+  });
+  const processVideoRequest = async (event) => {
+    event.preventDefault();
     const file = document.querySelector('#mediapipe-video-file')?.files?.[0];
-    const button = event.currentTarget;
+    const button = document.querySelector('#run-mediapipe-analysis');
     if (!file) {
-      status.textContent = 'Escolha um arquivo de video antes de rodar a analise.';
+      if (status) status.textContent = 'Escolha um arquivo de vídeo antes de rodar a análise.';
       return;
     }
+    const exercise = findVideoAnalysisExercise(document.querySelector('#mediapipe-exercise')?.value);
     await runVideoAnalysis({
       file,
-      athlete: document.querySelector('#mediapipe-athlete')?.value?.trim() || 'Isa',
-      fundamental: document.querySelector('#mediapipe-fundamental')?.value || 'Saque',
+      athlete: 'Isa',
+      fundamental: exercise?.fundamental || 'Saque',
+      exercise,
       status,
       button,
+    });
+  };
+  const processButton = document.querySelector('#run-mediapipe-analysis');
+  const processForm = document.querySelector('#video-analysis-form');
+  window.__isaProcessVideoClick = processVideoRequest;
+  if (processButton) processButton.dataset.ready = 'true';
+  processForm?.addEventListener('submit', processVideoRequest);
+  document.querySelectorAll('[data-video-sample-preview]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const sample = findVideoSampleClip(button.dataset.videoSamplePreview);
+      if (sample) setVideoPreviewFromSample(sample, status);
+    });
+  });
+  document.querySelectorAll('[data-video-sample-run]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const sample = findVideoSampleClip(button.dataset.videoSampleRun);
+      if (sample) runSampleVideoAnalysis(sample, status, button);
     });
   });
   document.querySelector('#verify-mediapipe')?.addEventListener('click', (event) => verifyMediaPipePose(status, event.currentTarget));
@@ -4963,7 +6441,8 @@ function renderAiVideosPage() {
     try {
       const imported = normalizeImportedVideoEvidence(JSON.parse(document.querySelector('#video-evidence-json').value));
       localStorage.setItem(videoEvidenceStorageKey, JSON.stringify(imported));
-      window.__isaLastVideoAnalysisMessage = videoEvidenceImportSummary(imported);
+      const registeredClips = imported.map((item) => upsertValidationClipFromEvidence(item)).filter(Boolean).length;
+      window.__isaLastVideoAnalysisMessage = `${videoEvidenceImportSummary(imported)} ${registeredClips} clips entraram no plano de validacao.`;
       renderAiVideosPage();
     } catch (error) {
       message.hidden = false;
@@ -4973,7 +6452,8 @@ function renderAiVideosPage() {
   const saveSports2dEvidence = (items, messageText) => {
     const current = readImportedVideoEvidence().filter((item) => String(item.source || '').toLowerCase() !== 'sports2d');
     localStorage.setItem(videoEvidenceStorageKey, JSON.stringify([...items, ...current]));
-    window.__isaLastVideoAnalysisMessage = `Evidencia Sports2D criada: ${items[0]?.marker || 'marcador tecnico'}. ${videoEvidenceImportSummary(items)}`;
+    const registeredClips = items.map((item) => upsertValidationClipFromEvidence(item)).filter(Boolean).length;
+    window.__isaLastVideoAnalysisMessage = `Evidencia Sports2D criada: ${items[0]?.marker || 'marcador tecnico'}. ${videoEvidenceImportSummary(items)} ${registeredClips} clips entraram no plano de validacao.`;
     renderAiVideosPage();
     if (messageText) messageText.textContent = window.__isaLastVideoAnalysisMessage;
   };
@@ -4989,8 +6469,8 @@ function renderAiVideosPage() {
     try {
       const text = await file.text();
       const imported = normalizeSports2dEvidence(text, {
-        athlete: document.querySelector('#mediapipe-athlete')?.value?.trim() || 'Isa',
-        fundamental: document.querySelector('#mediapipe-fundamental')?.value || 'Saque',
+        athlete: 'Isa',
+        fundamental: findVideoAnalysisExercise(document.querySelector('#mediapipe-exercise')?.value)?.fundamental || 'Saque',
         title: file.name,
       });
       saveSports2dEvidence(imported, messageText);
@@ -5008,7 +6488,7 @@ function renderAiVideosPage() {
       if (!response.ok) throw new Error('Nao foi possivel carregar a amostra Sports2D.');
       const imported = normalizeSports2dEvidence(await response.text(), {
         athlete: 'Atleta exemplo',
-        fundamental: 'Saque',
+        fundamental: findVideoAnalysisExercise(document.querySelector('#mediapipe-exercise')?.value)?.fundamental || 'Saque',
         title: 'sample-sports2d-saque.mot',
       });
       saveSports2dEvidence(imported, messageText);
@@ -5184,7 +6664,7 @@ function renderAiVideosPage() {
     }
   });
   document.querySelector('#add-validation-clip')?.addEventListener('click', () => {
-    const athlete = document.querySelector('#validation-athlete')?.value?.trim() || 'Isa';
+    const athlete = 'Isa';
     const marker = document.querySelector('#validation-marker')?.value?.trim() || 'Marcador tecnico';
     const fundamental = document.querySelector('#validation-fundamental')?.value || 'Saque';
     const clip = {
@@ -5218,12 +6698,49 @@ function renderAiVideosPage() {
     button.addEventListener('click', () => {
       const item = evidence.find((entry) => entry.id === button.dataset.videoEvidenceCalibrate);
       if (!item) {
-        window.__isaLastVideoAnalysisMessage = 'Nao foi possivel encontrar a evidencia de IA para calibrar.';
+        window.__isaLastVideoAnalysisMessage = 'Não foi possível encontrar esse resultado para revisão.';
         renderAiVideosPage();
         return;
       }
       const manual = upsertManualCalibrationEvidence(item);
-      window.__isaLastVideoAnalysisMessage = `Checagem manual criada para ${manual.marker}. Compare IA e observacao tecnica antes do proximo relatorio.`;
+      window.__isaLastVideoAnalysisMessage = `Revisão salva para ${manual.marker}. Compare com o vídeo antes do próximo relatório.`;
+      renderAiVideosPage();
+    });
+  });
+  document.querySelectorAll('[data-video-evidence-archive]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const archived = archiveVideoEvidence(button.dataset.videoEvidenceArchive);
+      pendingVideoEvidenceDeleteId = '';
+      window.__isaLastVideoAnalysisMessage = archived
+        ? `Resultado "${archived.exerciseTitle || archived.marker}" arquivado.`
+        : 'Nao foi possivel arquivar o resultado selecionado.';
+      renderAiVideosPage();
+    });
+  });
+  document.querySelectorAll('[data-video-evidence-restore]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const restored = restoreArchivedVideoEvidence(button.dataset.videoEvidenceRestore);
+      pendingVideoEvidenceDeleteId = '';
+      window.__isaLastVideoAnalysisMessage = restored
+        ? `Resultado "${restored.exerciseTitle || restored.marker}" voltou para os ativos.`
+        : 'Nao foi possivel restaurar o resultado selecionado.';
+      renderAiVideosPage();
+    });
+  });
+  document.querySelectorAll('[data-video-evidence-delete]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.videoEvidenceDelete;
+      if (pendingVideoEvidenceDeleteId !== id) {
+        pendingVideoEvidenceDeleteId = id;
+        window.__isaLastVideoAnalysisMessage = 'Clique em Confirmar exclusão para apagar este resultado para sempre.';
+        renderAiVideosPage();
+        return;
+      }
+      const deleted = deleteVideoEvidenceForever(id);
+      pendingVideoEvidenceDeleteId = '';
+      window.__isaLastVideoAnalysisMessage = deleted
+        ? `Resultado "${deleted.exerciseTitle || deleted.marker}" excluido para sempre.`
+        : 'Nao foi possivel excluir o resultado selecionado.';
       renderAiVideosPage();
     });
   });
@@ -5236,8 +6753,13 @@ function renderAiVideosPage() {
   });
 }
 function render() {
-  if (!athleteProfile.completed || editingProfile) {
+  if (editingProfile) {
     renderProfileQuestionnairePage();
+    return;
+  }
+  if (!athleteProfile.completed) {
+    if (!getSelectedPosition()) renderPositionSelectionPage();
+    else renderOnboardingPage();
     return;
   }
   if (!getSelectedPosition()) {
@@ -5251,7 +6773,6 @@ function render() {
   else if (activePage === 'relatorios') renderReportsPage();
   else if (activePage === 'exercicios') renderExerciseLibraryPage();
   else if (activePage === 'individual') renderIndividualPage();
-  else if (activePage === 'indicadores') renderIndicatorsPage();
   else if (activePage === 'leitura') renderGameReadingPage();
   else renderAiVideosPage();
 }

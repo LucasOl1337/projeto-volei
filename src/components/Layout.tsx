@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   Library,
   PlaySquare,
-  UsersRound,
 } from 'lucide-react';
 import { navigation, type PageId } from '@/data/volleyball';
 
@@ -25,7 +24,6 @@ interface LayoutProps {
 const navIcons: Record<PageId, React.ElementType> = {
   dashboard: LayoutDashboard,
   treinos: CalendarDays,
-  posicoes: UsersRound,
   'fisico-mobilidade': Dumbbell,
   relatorios: FileText,
   exercicios: Library,
@@ -62,7 +60,7 @@ export default function Layout({ activePage, onPageChange, children }: LayoutPro
       >
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--isa-line-strong)] bg-[rgba(69,215,200,0.12)]">
-            <img src="/assets/site-icon-192.png" alt="" className="h-full w-full object-cover" />
+            <img src="public/assets/site-icon-192.png" alt="" className="h-full w-full object-cover" />
           </div>
           {!collapsed && (
             <div className="min-w-0">

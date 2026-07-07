@@ -13,7 +13,7 @@ O ciclo visual de `Relatorio` e `Videos` passou a reforcar a etapa manual do pro
 
 ## Ponte com volei
 
-Antes de um scout sofisticado, a atleta precisa saber o que observar: qual fundamento, qual erro, qual evidencia e qual correcao. No app, isso vira campos claros e uma timeline manual. A tecnologia entra como apoio visual e organizacional, nao como promessa de analise automatica.
+Antes de um scout sofisticado, o atleta precisa saber o que observar: qual fundamento, qual erro, qual evidencia e qual correcao. No app, isso vira campos claros e uma timeline manual. A tecnologia entra como apoio visual e organizacional, nao como promessa de analise automatica.
 
 ## Regra para proximos ciclos
 

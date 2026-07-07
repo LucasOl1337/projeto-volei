@@ -1,6 +1,6 @@
 # 0023 - Worklist Sports2D para volei
 
-No treino, a treinadora nao diz apenas "faça saque". Ela define fase, foco e criterio: contato alto, braco estendido, base equilibrada. A worklist faz isso para a IA.
+No treino, o treinador nao diz apenas "faça saque". Ele define fase, foco e criterio: contato alto, braco estendido, base equilibrada. A worklist faz isso para a IA.
 
 ## Conceito
 

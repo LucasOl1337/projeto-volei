@@ -1,4 +1,4 @@
-# 0011 - Leitura de jogo com simulacao
+﻿# 0011 - Leitura de jogo com simulacao
 
 Data: 2026-07-01
 
@@ -24,4 +24,4 @@ Depois, cada cena simulada pode ser substituida por um video curto real, mantend
 
 ## Ajuste visual
 
-Os marcadores da quadra precisam ensinar a jogada sem siglas ambíguas. Por isso, a cena passou a mostrar nomes diretos como `Atacante entrada`, `Levantadora`, `Defensora` e `espaco vazio`, com cada elemento posicionado no lado correto da quadra.
+Os marcadores da quadra precisam ensinar a jogada sem siglas ambÃ­guas. Por isso, a cena passou a mostrar nomes diretos como `Atacante entrada`, `Levantador`, `Defensor` e `espaco vazio`, com cada elemento posicionado no lado correto da quadra.

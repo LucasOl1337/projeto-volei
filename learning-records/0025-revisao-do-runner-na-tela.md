@@ -4,7 +4,7 @@ No volei, um relatorio bom nao mostra so o placar. Ele mostra o que aconteceu e 
 
 ## Conceito
 
-Um JSON de terminal e uma evidencia tecnica para o sistema, mas nao e uma boa experiencia para a usuaria. A tela precisa traduzir status de execucao em acao: falta video, falta instalar Sports2D, pronto para rodar, rodou mas falta copiar o arquivo de angulos, ou pronto para processar.
+Um JSON de terminal e uma evidencia tecnica para o sistema, mas nao e uma boa experiencia para o usuario. A tela precisa traduzir status de execucao em acao: falta video, falta instalar Sports2D, pronto para rodar, rodou mas falta copiar o arquivo de angulos, ou pronto para processar.
 
 ## Decisao
 

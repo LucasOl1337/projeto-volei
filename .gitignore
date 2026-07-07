@@ -1,6 +1,7 @@
 .venv-video-ai/
 exports/
-videos/
+/videos/
+tmp-validation/
 node_modules/
 dist/
 .env

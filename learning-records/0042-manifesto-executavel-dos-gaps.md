@@ -4,7 +4,7 @@ Data: 2026-07-01
 
 ## Conceito
 
-No volei, uma treinadora nao diz apenas "melhorar o saque". Ela define a repeticao: atleta, fundamento, fase do gesto, criterio de observacao e como registrar a evidencia.
+No volei, um treinador nao diz apenas "melhorar o saque". Ele define a repeticao: atleta, fundamento, fase do gesto, criterio de observacao e como registrar a evidencia.
 
 No codigo, o manifesto faz esse mesmo papel. Ele transforma uma lista de gaps em entradas padronizadas para o pipeline executar.
 
@@ -21,4 +21,4 @@ Sports2D continua como fonte de piloto por CLI, sem clonar o repositorio para de
 
 ## Criterio de cuidado
 
-Um manifesto pronto nao significa IA aprovada. Ele apenas organiza a coleta. A aprovacao depende de pares IA x manual suficientes, alinhamento tecnico e revisao final da treinadora.
+Um manifesto pronto nao significa IA aprovada. Ele apenas organiza a coleta. A aprovacao depende de pares IA x manual suficientes, alinhamento tecnico e revisao final do treinador.

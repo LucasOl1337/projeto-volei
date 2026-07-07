@@ -1,6 +1,6 @@
 {
   "name": "projeto-isa",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dashboard de apoio a treinos de volei, relatorios e indicadores.",
   "type": "module",
   "scripts": {

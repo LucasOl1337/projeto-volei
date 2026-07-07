@@ -1,10 +1,10 @@
-# 0009 - Visao geral como placar da atleta
+# 0009 - Visao geral como placar do atleta
 
 Data: 2026-07-01
 
 ## Aprendizado
 
-No app de treino individual, a pagina inicial deve funcionar como placar da atleta: mostrar como estao os treinos, fundamentos e registros atuais.
+No app de treino individual, a pagina inicial deve funcionar como placar do atleta: mostrar como estao os treinos, fundamentos e registros atuais.
 
 ## Conceito de desenvolvimento
 
@@ -18,7 +18,7 @@ Removemos da pagina inicial chamadas para novos exercicios, montagem de plano e 
 
 A `Visao geral` agora mostra apenas:
 
-- status da atleta;
+- status do atleta;
 - quantidade de treinos registrados;
 - medias fisica, tecnica e de fundamentos;
 - dados do progresso;

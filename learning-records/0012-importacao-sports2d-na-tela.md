@@ -2,7 +2,7 @@
 
 ## Dominio do volei
 
-Quando a treinadora recebe um dado externo de movimento, ele ainda precisa virar uma observacao tecnica: fundamento, marcador, tempo, criterio e proxima acao.
+Quando o treinador recebe um dado externo de movimento, ele ainda precisa virar uma observacao tecnica: fundamento, marcador, tempo, criterio e proxima acao.
 
 No saque, por exemplo, `Right_arm` e `Right_elbow` so ajudam quando viram uma pergunta de treino: o braco estava alto e o cotovelo estava estendido no momento certo?
 

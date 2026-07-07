@@ -131,7 +131,7 @@ Estado implementado: MediaPipe ja roda no navegador para uma primeira amostragem
 
 Atualizacao de adaptacao: os projetos de basquete pesquisados usam a ideia de fase do gesto, como preparacao, soltura e finalizacao. No Projeto Isa, isso foi traduzido para fases por fundamento: preparacao, contato/alcance e finalizacao/recuperacao. Essa camada orienta qual frame a IA deve procurar antes de gerar evidencia. A fase tambem virou dado no contrato (`phase`), para que cada evidencia carregue o momento tecnico que esta sendo validado.
 
-Atualizacao de integracao: a tela `Videos` agora prepara e baixa um dataset local de calibracao IA x manual. Esse arquivo e a ponte para testar reposititorios externos: primeiro exportamos os pares validados do Projeto Isa, depois avaliamos se MediaPipe, Sports2D ou outro pipeline reproduz o criterio da treinadora. O comando `npm run video:calibration` valida a amostra versionada do contrato antes de usar o formato em scripts externos.
+Atualizacao de integracao: a tela `Videos` agora prepara e baixa um dataset local de calibracao IA x manual. Esse arquivo e a ponte para testar reposititorios externos: primeiro exportamos os pares validados do Projeto Isa, depois avaliamos se MediaPipe, Sports2D ou outro pipeline reproduz o criterio do treinador. O comando `npm run video:calibration` valida a amostra versionada do contrato antes de usar o formato em scripts externos.
 
 Atualizacao de selecao open source: a tela `Videos` agora mostra uma matriz de adaptacao. Ela separa projetos para pilotar agora, estudar depois e manter apenas como referencia. O arquivo `reference/video-ai-project-candidates.json` registra a decisao e o comando `npm run video:candidates` ranqueia os candidatos com criterios simples: licenca, aderencia ao volei, facilidade de integracao e valor para o MVP.
 
@@ -147,7 +147,7 @@ Atualizacao de execucao Sports2D: o comando `npm run video:sports2d:worklist` ge
 
 Atualizacao de runner: o comando `npm run video:sports2d:run` diagnostica a worklist e so executa Sports2D quando chamado com `-- --execute`. O runner separa `needs-videos`, `needs-sports2d`, `ready-to-run`, `ran-needs-angles` e `has-angles`, para nao confundir uma chamada tecnica com evidencia pronta para revisao.
 
-Atualizacao de revisao do runner: a tela `Videos` agora interpreta o JSON `isa.sports2d-run-report.v1`. Isso conecta terminal e produto: a usuaria cola a saida do runner e recebe o estado de cada clip, como falta video, falta Sports2D, rodou sem arquivo final ou pronto para processar.
+Atualizacao de revisao do runner: a tela `Videos` agora interpreta o JSON `isa.sports2d-run-report.v1`. Isso conecta terminal e produto: o usuario cola a saida do runner e recebe o estado de cada clip, como falta video, falta Sports2D, rodou sem arquivo final ou pronto para processar.
 
 Atualizacao de fixture demo: o projeto agora tem um manifesto demo Sports2D e comandos `video:sports2d:worklist:demo`, `video:sports2d:run:demo` e `video:clips:process:demo`. Essa fixture usa arquivos conhecidos para validar o pipeline inteiro antes dos videos reais. Na tela, `Testar runner demo` carrega um relatorio `has-angles` para revisar o estado esperado sem confundir demo tecnico com evidencia esportiva real.
 
@@ -194,6 +194,10 @@ Atualizacao de manifesto de gaps: o comando `npm run video:calibration:manifest`
 
 Atualizacao de fluxo executavel: os comandos `npm run video:calibration:worklist`, `npm run video:calibration:run -- --execute` e `npm run video:calibration:process -- --write` agora usam diretamente os gaps de calibracao. Isso fecha a sequencia pratica: detectar pares faltantes, montar comandos Sports2D, diagnosticar execucao e normalizar evidencias para revisao.
 
+Atualizacao de integracao MediaPipe/validacao: quando a tela gera evidencia local com MediaPipe, importa JSON externo ou converte Sports2D, o clip entra automaticamente no plano de validacao como `IA rodada`. O status da validacao agora diferencia coleta simples de `IA aguardando revisao`, deixando claro que a proxima etapa e parear a sugestao com checagem manual.
+
+Atualizacao de usabilidade: a tela `Videos` foi reorganizada como uma estacao de analise. A primeira dobra agora prioriza escolher video, atleta, fundamento, processar com IA e ver o resultado/revisao. Pesquisa, importacao JSON, Sports2D, dataset, manifesto e pacote piloto continuam disponiveis, mas ficam recolhidos em `Ferramentas avancadas` para nao transformar a experiencia principal em uma pagina gigante de botoes.
+
 ### Fase C: comparacao
 
 - Comparar marcacao manual com sugestao automatica.
@@ -207,4 +211,4 @@ Atualizacao de fluxo executavel: os comandos `npm run video:calibration:worklist
 
 ## Principio de produto
 
-Para o volei, a IA so deve entrar como assistente de evidencia. A treinadora continua definindo criterio, contexto e proxima acao.
+Para o volei, a IA so deve entrar como assistente de evidencia. O treinador continua definindo criterio, contexto e proxima acao.

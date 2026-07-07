@@ -1,6 +1,6 @@
 # 0024 - Runner Sports2D controlado
 
-No treino, nao basta montar a fila de exercicios. A treinadora tambem precisa saber se a bola, a quadra e a atleta estao prontas para executar. O runner faz essa checagem para a analise de video.
+No treino, nao basta montar a fila de exercicios. O treinador tambem precisa saber se a bola, a quadra e o atleta estao prontas para executar. O runner faz essa checagem para a analise de video.
 
 ## Conceito
 

@@ -2,7 +2,7 @@
 
 ## Decisao de produto
 
-O Projeto Isa continua focado em exercicios individuais dentro de casa. Por isso, o visual artistico deve lembrar volei e criar identidade, mas a prioridade da interface e orientar a atleta: preparar espaco, executar fundamento, medir evidencia e registrar evolucao.
+O Projeto Isa continua focado em exercicios individuais dentro de casa. Por isso, o visual artistico deve lembrar volei e criar identidade, mas a prioridade da interface e orientar o atleta: preparar espaco, executar fundamento, medir evidencia e registrar evolucao.
 
 Nesta etapa, a tela de Videos voltou a ser manual. Recursos de analise automatica, MediaPipe ou IA ficam para depois, quando o app ja tiver bons registros, criterios e fluxos de revisao.
 
@@ -15,4 +15,4 @@ Nesta etapa, a tela de Videos voltou a ser manual. Recursos de analise automatic
 
 ## Mini-licao
 
-Um componente de interface funciona como uma posicao em quadra: ele precisa ajudar a jogada principal. Se um card bonito, uma imagem ou um botao desvia a usuaria do treino, ele esta fora de posicao. Visual bom no app e aquele que apoia decisao, registro e evolucao.
+Um componente de interface funciona como uma posicao em quadra: ele precisa ajudar a jogada principal. Se um card bonito, uma imagem ou um botao desvia o usuario do treino, ele esta fora de posicao. Visual bom no app e aquele que apoia decisao, registro e evolucao.
